@@ -149,7 +149,7 @@ def cupy_kernel(strFunction, objectVariables):
 # end
 
 # decorator che indica che tale funzione serve per salvare dei parametri che verranno utilizzati più volte
-@cupy.util.memoize(for_each_device=True)
+@cupy.memoize(for_each_device=True)
 def cupy_launch(strFunction, strKernel):
     return cupy.cuda.compile_with_cache(strKernel).get_function(strFunction)
 
@@ -164,6 +164,7 @@ class FunctionSepconv(torch.autograd.Function):
 
     # ricevo l'immagine con del padding (in base alla dimensione del kernel) e i 2 kenel (vettore colonna e riga)
     # di default l'input è batch_sizex3x178x178, mentre i kernel hanno tutti batch_sizex51x128x128
+    @staticmethod
     def forward(self, input, vertical, horizontal):
         # indico che dati usare per la fase di backward
         self.save_for_backward(input, vertical, horizontal)
@@ -217,6 +218,7 @@ class FunctionSepconv(torch.autograd.Function):
     # end
 
     # basta chiamare backward() senza argomenti, perché questi sono automaticamente l'output di forward()
+    @staticmethod
     def backward(self, gradOutput):
         input, vertical, horizontal = self.saved_tensors
 

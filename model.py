@@ -190,8 +190,8 @@ class SepConvNet(torch.nn.Module):
         # aggiungo al frame più la dimensione del kernel
         # Es. con un kernel 5x5 aggiungo un padding di 2
         # di default frame0 = 128x128 e il kernel_size = 51 => modulePad(frame0) = 178x178 
-        tensorDot1 = sepconv.FunctionSepconv()(self.modulePad(frame0), Vertical1, Horizontal1)
-        tensorDot2 = sepconv.FunctionSepconv()(self.modulePad(frame2), Vertical2, Horizontal2)
+        tensorDot1 = sepconv.FunctionSepconv.apply(self.modulePad(frame0), Vertical1, Horizontal1)
+        tensorDot2 = sepconv.FunctionSepconv.apply(self.modulePad(frame2), Vertical2, Horizontal2)
 
         frame1 = tensorDot1 + tensorDot2
 

@@ -15,7 +15,7 @@ parser.add_argument('--train', type=str, default='./db')
 parser.add_argument('--kernel', type=int, default=51)
 parser.add_argument('--out_dir', type=str, default='./output_sepconv_pytorch')
 parser.add_argument('--epochs', type=int, default=10)
-parser.add_argument('--batch_size', type=int, default=4)
+parser.add_argument('--batch_size', type=int, default=32)
 parser.add_argument('--load_model', type=str, default=None)
 parser.add_argument('--test_input', type=str, default='./Interpolation_testset/input')
 parser.add_argument('--gt', type=str, default='./Interpolation_testset/gt')
@@ -55,8 +55,8 @@ def main():
     train_loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True, num_workers=0)
 
     # gli passo la directory con gli esempi per il test e la directory con le rispettive label
-    TestDB = Middlebury_other(args.test_input, args.gt)
-    test_output_dir = args.out_dir + '/result'
+    #TestDB = Middlebury_other(args.test_input, args.gt)
+    #test_output_dir = args.out_dir + '/result'
 
     # nel caso sia presente un file con un modello, viene utilizzato quello.
     # Il modello deve presentare:
@@ -85,7 +85,7 @@ def main():
     # valuto il modello prima di allenarlo, sia nel caso in cui questo sia già stato allenato che no 
     model.eval()
     # il nome del file in output è: il n. dell'epoch espresso come numero a 3 cifre
-    TestDB.Test(model, test_output_dir, logfile, str(model.epoch.item()).zfill(3) + '.png')
+    #TestDB.Test(model, test_output_dir, logfile, str(model.epoch.item()).zfill(3) + '.png')
 
     while True:
         # item() ritorna un numero solo se il tensore è formato da un solo valore 
@@ -104,7 +104,7 @@ def main():
             # salvo il modello ottenuto dopo ogni epoch
             torch.save({'epoch': model.epoch, 'state_dict': model.state_dict(), 'kernel_size': kernel_size}, ckpt_dir + '/model_epoch' + str(model.epoch.item()).zfill(3) + '.pth')
             model.eval()
-            TestDB.Test(model, test_output_dir, logfile, str(model.epoch.item()).zfill(3) + '.png')
+            #TestDB.Test(model, test_output_dir, logfile, str(model.epoch.item()).zfill(3) + '.png')
             logfile.write('\n')
 
     logfile.close()

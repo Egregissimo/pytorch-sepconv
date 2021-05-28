@@ -1,1 +1,9 @@
+*__pycache__*
 .vs/**
+*.mp4
+*.avi
+dataset/UCF-101/**
+dataset/input_images/**
+*.png
+*.jpg
+output/**

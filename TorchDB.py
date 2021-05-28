@@ -26,13 +26,13 @@ class DBreader_frame_interpolation(Dataset):
                 transforms.ToTensor()
             ])
 
-        self.triplet_list = np.array([(db_dir + '/' + f) for f in listdir(db_dir) if isdir(join(db_dir, f))])
-        self.file_len = len(self.triplet_list)
+        self.triplet_list = np.array([(db_dir + '/' + f) for f in listdir(db_dir) ])
+        self.file_len = int(len(self.triplet_list)/3)
 
     def __getitem__(self, index):
-        frame0 = self.transform(Image.open(self.triplet_list[index] + "/frame0.png"))
-        frame1 = self.transform(Image.open(self.triplet_list[index] + "/frame1.png"))
-        frame2 = self.transform(Image.open(self.triplet_list[index] + "/frame2.png"))
+        frame0 = self.transform(Image.open(self.triplet_list[index * 3 + 0]))
+        frame1 = self.transform(Image.open(self.triplet_list[index * 3 + 1]))
+        frame2 = self.transform(Image.open(self.triplet_list[index * 3 + 2]))
 
         return frame0, frame1, frame2
 
