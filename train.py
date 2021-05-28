@@ -26,6 +26,7 @@ transform = transforms.Compose([transforms.ToTensor()])
 def to_variable(x):
     if torch.cuda.is_available():
         x = x.cuda()
+    # potrei anche evitare di usare 'return Variable(x)', e sostituirlo con 'return x'
     return Variable(x)
 
 
@@ -49,12 +50,19 @@ def main():
     total_epoch = args.epochs
     batch_size = args.batch_size
 
+    # nel db (.db) dato, ho solo 5 esempi 
     dataset = DBreader_frame_interpolation(db_dir, resize=(128, 128))
     train_loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True, num_workers=0)
 
+    # gli passo la directory con gli esempi per il test e la directory con le rispettive label
     TestDB = Middlebury_other(args.test_input, args.gt)
     test_output_dir = args.out_dir + '/result'
 
+    # nel caso sia presente un file con un modello, viene utilizzato quello.
+    # Il modello deve presentare:
+    #   - kernel_size
+    #   - n. epoch finora eseguite
+    #   - parametri per la rete
     if args.load_model is not None:
         checkpoint = torch.load(args.load_model)
         kernel_size = checkpoint['kernel_size']
@@ -71,12 +79,16 @@ def main():
     if torch.cuda.is_available():
         model = model.cuda()
 
+    # il numero massimo di epoch è il numero di esempi nel dataset
     max_step = train_loader.__len__()
 
+    # valuto il modello prima di allenarlo, sia nel caso in cui questo sia già stato allenato che no 
     model.eval()
+    # il nome del file in output è: il n. dell'epoch espresso come numero a 3 cifre
     TestDB.Test(model, test_output_dir, logfile, str(model.epoch.item()).zfill(3) + '.png')
 
     while True:
+        # item() ritorna un numero solo se il tensore è formato da un solo valore 
         if model.epoch.item() == total_epoch:
             break
         model.train()
@@ -89,6 +101,7 @@ def main():
                 print('{:<13s}{:<14s}{:<6s}{:<16s}{:<12s}{:<20.16f}'.format('Train Epoch: ', '[' + str(model.epoch.item()) + '/' + str(total_epoch) + ']', 'Step: ', '[' + str(batch_idx) + '/' + str(max_step) + ']', 'train loss: ', loss.item()))
         model.increase_epoch()
         if model.epoch.item() % 1 == 0:
+            # salvo il modello ottenuto dopo ogni epoch
             torch.save({'epoch': model.epoch, 'state_dict': model.state_dict(), 'kernel_size': kernel_size}, ckpt_dir + '/model_epoch' + str(model.epoch.item()).zfill(3) + '.pth')
             model.eval()
             TestDB.Test(model, test_output_dir, logfile, str(model.epoch.item()).zfill(3) + '.png')

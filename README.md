@@ -18,7 +18,7 @@ The separable convolution layer is implemented in CUDA using CuPy, which is why 
 ## To Prepare Training Dataset
 Two input frames and one output frame are in a folder and the input frames should be named as frame0.png, frame2.png and the output frame should be named as frame1.png. You can name each folder freely.
 
-The training dataset is not provided. We prepared training dataset by cropping [UCF101 dataset](http://crcv.ucf.edu/data/UCF101.php). When creating training dataset, we measured Optical Flow of each frame to balance the motion magnitude of whole dataset.
+The training dataset is not provided. We prepared training dataset by cropping [UCF101 dataset](https://www.crcv.ucf.edu/data/UCF101.php). When creating training dataset, we measured Optical Flow of each frame to balance the motion magnitude of whole dataset.
 
 An example of train dataset is in [db](./db) folder.
 

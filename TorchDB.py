@@ -5,7 +5,8 @@ from os.path import join, isdir
 from torch.utils.data import Dataset
 from torchvision import transforms
 
-
+# Il database che legge deve essere formato da una serie di folder che contengono un singolo esempio.
+# Questo è formato da 3 immagini (frame0, frame1, e frame2) che formano l'input e la label
 class DBreader_frame_interpolation(Dataset):
     """
     DBreader reads all triplet set of frames in a directory.

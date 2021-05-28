@@ -100,11 +100,18 @@ kernel_SeparableConvolution_updateGradHorizontal = '''
     } }
 '''
 
-
+# objectVariables è un dict con le varie variabili della funzione
 def cupy_kernel(strFunction, objectVariables):
+    # global() ritorna sotto forma di dict tutte le informazioni del programma
     strKernel = globals()[strFunction]
 
     while True:
+        # cerca in strFunction 'SIZE_(qualsiasi_testo)'
+        # nel caso di 'kernel_Sepconv_updateOutput' viene trovato:
+        #   SIZE_0(output)
+        #   SIZE_1(output)
+        #   SIZE_2(output)
+        #   SIZE_3(output)
         objectMatch = re.search('(SIZE_)([0-4])(\()([^\)]*)(\))', strKernel)
 
         if objectMatch is None:
@@ -141,6 +148,7 @@ def cupy_kernel(strFunction, objectVariables):
 
 # end
 
+# decorator che indica che tale funzione serve per salvare dei parametri che verranno utilizzati più volte
 @cupy.util.memoize(for_each_device=True)
 def cupy_launch(strFunction, strKernel):
     return cupy.cuda.compile_with_cache(strKernel).get_function(strFunction)
@@ -154,17 +162,21 @@ class FunctionSepconv(torch.autograd.Function):
 
     # end
 
+    # ricevo l'immagine con del padding (in base alla dimensione del kernel) e i 2 kenel (vettore colonna e riga)
+    # di default l'input è batch_sizex3x178x178, mentre i kernel hanno tutti batch_sizex51x128x128
     def forward(self, input, vertical, horizontal):
+        # indico che dati usare per la fase di backward
         self.save_for_backward(input, vertical, horizontal)
 
-        intSample = input.size(0)
-        intInputDepth = input.size(1)
-        intInputHeight = input.size(2)
-        intInputWidth = input.size(3)
-        intFilterSize = min(vertical.size(1), horizontal.size(1))
-        intOutputHeight = min(vertical.size(2), horizontal.size(2))
-        intOutputWidth = min(vertical.size(3), horizontal.size(3))
+        intSample = input.size(0) # batch_size
+        intInputDepth = input.size(1) # 3
+        intInputHeight = input.size(2) # 178
+        intInputWidth = input.size(3) # 178
+        intFilterSize = min(vertical.size(1), horizontal.size(1)) # 51
+        intOutputHeight = min(vertical.size(2), horizontal.size(2)) # 128
+        intOutputWidth = min(vertical.size(3), horizontal.size(3)) # 178
 
+        # Effettuo dei controlli
         assert (intInputHeight - intFilterSize == intOutputHeight - 1)
         assert (intInputWidth - intFilterSize == intOutputWidth - 1)
 
@@ -172,7 +184,8 @@ class FunctionSepconv(torch.autograd.Function):
         assert (vertical.is_contiguous() == True)
         assert (horizontal.is_contiguous() == True)
 
-        output = input.new_zeros(intSample, intInputDepth, intOutputHeight, intOutputWidth)
+        # creo un Tensor con le stesse dimensioni di un'immagine
+        output = input.new_zeros(intSample, intInputDepth, intOutputHeight, intOutputWidth) # batch_sizex3x128x128
 
         if input.is_cuda == True:
             class Stream:
@@ -180,7 +193,8 @@ class FunctionSepconv(torch.autograd.Function):
 
             # end
 
-            n = output.nelement()
+            # numero di elementi nell'input, cioè il prodotto delle varie dimensioni del tensore
+            n = output.nelement() # batch_size*3*128*128
             cupy_launch('kernel_Sepconv_updateOutput', cupy_kernel('kernel_Sepconv_updateOutput', {
                 'input': input,
                 'vertical': vertical,
@@ -202,6 +216,7 @@ class FunctionSepconv(torch.autograd.Function):
 
     # end
 
+    # basta chiamare backward() senza argomenti, perché questi sono automaticamente l'output di forward()
     def backward(self, gradOutput):
         input, vertical, horizontal = self.saved_tensors
 
