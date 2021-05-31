@@ -6,3 +6,4 @@ For the creation of the dataset some things were modified:
 - frames are taken every n seconds to increase diversity
 - videos are chosen with 480p resolution, so the motion in a patch is not too large
   also are chosen to have focus on all moving things, to not get blur and the motion is not too large
+- Images are randomly cropped from videos, so they are not re cropped from 150 to 128 pixels

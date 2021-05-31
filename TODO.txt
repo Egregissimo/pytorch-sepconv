@@ -1,7 +1,6 @@
 - provare diverse loss functions
 - normalizzazione
 - suddivisione training set in train test e validation
-- creare le patch direttamente a 128x128 pixel
 - inserire la creazione del database direttamente durante il training
 - provare diversi upsampling
 - provare il dropout

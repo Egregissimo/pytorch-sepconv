@@ -50,7 +50,7 @@ class imagesStream(framesStream):
 # Read stream, group frames in groups of 3, crop randomly to get patches of cropsize x cropsize pixels.
 # Take only some patches and discard patches that have too little or too high motion.
 def extractFromStream(stream, file_name, output_folder, frame_spacing, crops_per_frame, fps, width, height):
-    crop_size = 150
+    crop_size = 128
     time_elapsed = 0
     time_delta = 0
     frame_number = 0
@@ -80,7 +80,7 @@ def extractFromStream(stream, file_name, output_folder, frame_spacing, crops_per
 
                 frame_number += 1
             else:   # already got 3 frames, I need to reset the timer and save frames
-                #cv.imshow('frame', frame)
+                cv.imshow('frame', frame)
                 frame_number = 0
                 time_delta = 0
 
@@ -89,9 +89,9 @@ def extractFromStream(stream, file_name, output_folder, frame_spacing, crops_per
                     frames_triplet = (frames_triplets[0][i], frames_triplets[1][i], frames_triplets[2][i])
                     isFlowGood = checkFlow(frames_triplet, 250, 4000)
                     if isFlowGood:
-                        #cv.imshow('crop0', frames_triplet[0])
-                        #cv.imshow('crop1', frames_triplet[1])
-                        #cv.imshow('crop2', frames_triplet[2])
+                        cv.imshow('crop0', frames_triplet[0])
+                        cv.imshow('crop1', frames_triplet[1])
+                        cv.imshow('crop2', frames_triplet[2])
                         cv.imwrite(output_folder + file_name + "_" +
                                     str(time_elapsed) + "_" + str(i) + "_" + '0.jpg', frames_triplet[0])
                         cv.imwrite(output_folder + file_name + "_" +

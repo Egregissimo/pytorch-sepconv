@@ -51,7 +51,7 @@ def main():
     batch_size = args.batch_size
 
     # nel db (.db) dato, ho solo 5 esempi 
-    dataset = DBreader_frame_interpolation(db_dir, resize=(128, 128))
+    dataset = DBreader_frame_interpolation(db_dir)
     train_loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True, num_workers=0)
 
     # gli passo la directory con gli esempi per il test e la directory con le rispettive label
