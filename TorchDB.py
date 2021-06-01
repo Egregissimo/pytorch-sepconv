@@ -34,6 +34,7 @@ class DBreader_frame_interpolation(Dataset):
         frame1 = self.transform(Image.open(self.triplet_list[index * 3 + 1]))
         frame2 = self.transform(Image.open(self.triplet_list[index * 3 + 2]))
 
+        # sono torch.Tensor, dunque è possibile eliminare tutte le istanze di Variable nei diversi file
         return frame0, frame1, frame2
 
     def __len__(self):

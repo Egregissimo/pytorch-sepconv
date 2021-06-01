@@ -7,6 +7,8 @@ import time
 import os
 from glob import glob
 
+rnd.seed(42)
+
 # I need to tell if my flow is too little or too high
 # to do so I compare the histograms of successive frames
 def checkFlow(triplet, min_threshold, max_threshold):
@@ -58,11 +60,15 @@ def extractFromStream(stream, file_name, output_folder, frame_spacing, crops_per
     random_crops = [] 
     # list containing corresponding patches for 3 successive frames
     frames_triplets = ([], [], [])
+    # create output directory if not exists
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
 
     while stream.isOpened():
         ret, frame = stream.read()
         if not ret:
-            print("stream end?")
+            print("stream end!")
             break
 
         #take a triplet every second
@@ -80,7 +86,7 @@ def extractFromStream(stream, file_name, output_folder, frame_spacing, crops_per
 
                 frame_number += 1
             else:   # already got 3 frames, I need to reset the timer and save frames
-                cv.imshow('frame', frame)
+                # cv.imshow('frame', frame)
                 frame_number = 0
                 time_delta = 0
 
@@ -89,15 +95,15 @@ def extractFromStream(stream, file_name, output_folder, frame_spacing, crops_per
                     frames_triplet = (frames_triplets[0][i], frames_triplets[1][i], frames_triplets[2][i])
                     isFlowGood = checkFlow(frames_triplet, 250, 4000)
                     if isFlowGood:
-                        cv.imshow('crop0', frames_triplet[0])
-                        cv.imshow('crop1', frames_triplet[1])
-                        cv.imshow('crop2', frames_triplet[2])
+                        # cv.imshow('crop0', frames_triplet[0])
+                        # cv.imshow('crop1', frames_triplet[1])
+                        # cv.imshow('crop2', frames_triplet[2])
                         cv.imwrite(output_folder + file_name + "_" +
-                                    str(time_elapsed) + "_" + str(i) + "_" + '0.jpg', frames_triplet[0])
+                                    str(time_elapsed) + "_" + str(i) + "_" + '0.png', frames_triplet[0])
                         cv.imwrite(output_folder + file_name + "_" +
-                                    str(time_elapsed) + "_" + str(i) + "_" + '1.jpg', frames_triplet[1])
+                                    str(time_elapsed) + "_" + str(i) + "_" + '1.png', frames_triplet[1])
                         cv.imwrite(output_folder + file_name + "_" +
-                                    str(time_elapsed) + "_" + str(i) + "_" + '2.jpg', frames_triplet[2])
+                                    str(time_elapsed) + "_" + str(i) + "_" + '2.png', frames_triplet[2])
 
                 frames_triplets = ([], [], [])
 
@@ -112,7 +118,7 @@ def extractFromVideo(file_name, output_folder, frame_spacing, crops_per_frame):
     width  = stream.get(cv.CAP_PROP_FRAME_WIDTH)   # float `width`
     height = stream.get(cv.CAP_PROP_FRAME_HEIGHT)  # float `height`
 
-    extractFromStream(videoStream(stream), file_name.replace('\\',''), output_folder, frame_spacing, crops_per_frame, fps, width, height)
+    extractFromStream(videoStream(stream), file_name.replace('\\','').replace('.', ''), output_folder, frame_spacing, crops_per_frame, fps, width, height)
 
 def extractFromImages(folder_name, output_folder, frame_spacing, crops_per_frame):
     file_names = [folder_name + file for file in os.listdir(folder_name)]

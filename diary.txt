@@ -7,3 +7,6 @@ For the creation of the dataset some things were modified:
 - videos are chosen with 480p resolution, so the motion in a patch is not too large
   also are chosen to have focus on all moving things, to not get blur and the motion is not too large
 - Images are randomly cropped from videos, so they are not re cropped from 150 to 128 pixels
+- Modificate le funzioni train e valutazione per rendere il codice più leggibile (si spera)
+- Rimossa la metrica di accuracy e aggiunta quella di PSNR
+- Aggiunta la possibilità di avere il numero totale di parametri

@@ -7,10 +7,10 @@ import sys
 from torch.nn import functional as F
 
 
-def to_variable(x):
+def to_cuda(x):
     if torch.cuda.is_available():
         x = x.cuda()
-    return Variable(x)
+    return x
 
 
 class KernelEstimation(torch.nn.Module):
@@ -150,7 +150,7 @@ class SepConvNet(torch.nn.Module):
         self.kernel_pad = int(math.floor(kernel_size / 2.0)) # 25
 
         # Variable è stato deprecato. Si possono usare i Tensor normalmente
-        self.epoch = Variable(torch.tensor(0, requires_grad=False))
+        self.epoch = torch.tensor(0, requires_grad=False)
         # rete per stimare i kernel
         self.get_kernel = KernelEstimation(self.kernel_size)
         self.optimizer = optim.Adam(self.parameters(), lr=0.001)
@@ -187,7 +187,7 @@ class SepConvNet(torch.nn.Module):
         # alleno la rete
         Vertical1, Horizontal1, Vertical2, Horizontal2 = self.get_kernel(frame0, frame2)
 
-        # aggiungo al frame più la dimensione del kernel
+        # aggiungo al frame la dimensione del kernel
         # Es. con un kernel 5x5 aggiungo un padding di 2
         # di default frame0 = 128x128 e il kernel_size = 51 => modulePad(frame0) = 178x178 
         tensorDot1 = sepconv.FunctionSepconv.apply(self.modulePad(frame0), Vertical1, Horizontal1)
@@ -196,19 +196,11 @@ class SepConvNet(torch.nn.Module):
         frame1 = tensorDot1 + tensorDot2
 
         if h_padded:
-            frame1 = frame1[:, :, 0:h0, :]
+            frame1 = frame1[:, :, :h0, :]
         if w_padded:
-            frame1 = frame1[:, :, :, 0:w0]
+            frame1 = frame1[:, :, :, :w0]
 
         return frame1
-
-    def train_model(self, frame0, frame2, frame1):
-        self.optimizer.zero_grad()
-        output = self.forward(frame0, frame2)
-        loss = self.criterion(output, frame1)
-        loss.backward()
-        self.optimizer.step()
-        return loss
 
     def increase_epoch(self):
         self.epoch += 1

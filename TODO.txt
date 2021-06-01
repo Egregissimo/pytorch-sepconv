@@ -1,7 +1,7 @@
 - provare diverse loss functions
 - normalizzazione
-- suddivisione training set in train test e validation
-- inserire la creazione del database direttamente durante il training
-- provare diversi upsampling
+-- suddivisione training set in train test e validation
+- provare diversi upsampling (Bilinear, Best neighborhood)
 - provare il dropout
-- produrre grafici e confrontare i risultati
+-- produrre grafici e confrontare i risultati
+- scrivere meglio la funzione per calcolare l'accuracy (con un valore soglia)
