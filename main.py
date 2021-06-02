@@ -15,13 +15,14 @@ parser = argparse.ArgumentParser(description='SepConv Pytorch')
 parser.add_argument('--database', type=str, default='./dataset/frames')
 parser.add_argument('--kernel', type=int, default=51)
 parser.add_argument('--out_dir', type=str, default='./output')
-parser.add_argument('--epochs', type=int, default=10)
+parser.add_argument('--epochs', type=int, default=5)
 parser.add_argument('--batch_size', type=int, default=32)
 parser.add_argument('--load_model', type=str, default=None)
 parser.add_argument('--train_test_ratio', type=float, default=0.8)
 parser.add_argument('--train_validation_ratio', type=float, default=0.8)
 parser.add_argument('--test', type=bool, default=True)
 parser.add_argument('--learning_rate', type=float, default=0.001)
+parser.add_argument('--calculate_stats', type=bool, default=False) # calculate mean and std from dataset
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 torch.manual_seed(0)
@@ -62,7 +63,7 @@ def main():
     train_data, validation_data, test_data = random_split(dataset, [num_train_examples, num_val_examples, num_test_examples])
 
     # normalizzo il dataset rispetto alle statistiche di train_data
-    dataset.normalization(train_data)
+    dataset.normalization(train_data, args.calculate_stats, args.out_dir)
 
     train_iterator = DataLoader(dataset=train_data, batch_size=batch_size, pin_memory=True, shuffle=False)
     validation_iterator = DataLoader(dataset=validation_data, batch_size=batch_size, pin_memory=True)
@@ -137,7 +138,7 @@ def main():
         valid_psnrs.append(valid_psnr)
 
     if test:
-        test_loss, test_psnr = evaluate(model, test_iterator, criterion, device, test= test, output_dir= result_dir)
+        test_loss, test_psnr = evaluate(dataset, model, test_iterator, criterion, device, test= test, output_dir= result_dir)
         print(f"Test -- Loss: {test_loss:.3f}, PSNR: {test_psnr:.3f}")
 
     logfile.close()

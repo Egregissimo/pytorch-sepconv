@@ -10,4 +10,6 @@ For the creation of the dataset some things were modified:
 - Modificate le funzioni train e valutazione per rendere il codice più leggibile (si spera)
 - Rimossa la metrica di accuracy e aggiunta quella di PSNR
 - Aggiunta la possibilità di avere il numero totale di parametri
-- aggiunta normalizzazione e successiva denormalizzazione in output per migliorare il learning
+- aggiunta normalizzazione e successiva denormalizzazione in output per migliorare il learning (ciò in effetti 
+  migliora un pochino la loss). Una volta calcolata la normalizzazione questa viene salvata su file 
+  per evitare di calcolarla ogni volta
