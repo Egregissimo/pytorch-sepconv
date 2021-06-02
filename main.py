@@ -24,6 +24,7 @@ parser.add_argument('--test', type=bool, default=True)
 parser.add_argument('--learning_rate', type=float, default=0.001)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+torch.manual_seed(0)
 
 def count_parameters(model):
     # Contiamo solo i parametri che possono essere aggiornati (backpropagated)
@@ -31,7 +32,7 @@ def count_parameters(model):
 
 def main():
     args = parser.parse_args()
-    db_dir = args.train
+    db_dir = args.database
 
     if not os.path.exists(args.out_dir):
         os.makedirs(args.out_dir)
@@ -60,9 +61,12 @@ def main():
 
     train_data, validation_data, test_data = random_split(dataset, [num_train_examples, num_val_examples, num_test_examples])
 
-    train_iterator = DataLoader(dataset=train_data, batch_size=batch_size, shuffle=True)
-    validation_iterator = DataLoader(dataset=validation_data, batch_size=batch_size)
-    test_iterator = DataLoader(dataset=test_data, batch_size=batch_size)
+    # normalizzo il dataset rispetto alle statistiche di train_data
+    dataset.normalization(train_data)
+
+    train_iterator = DataLoader(dataset=train_data, batch_size=batch_size, pin_memory=True, shuffle=False)
+    validation_iterator = DataLoader(dataset=validation_data, batch_size=batch_size, pin_memory=True)
+    test_iterator = DataLoader(dataset=test_data, batch_size=batch_size, pin_memory=True)
 
     # nel caso sia presente un file con un modello, viene utilizzato quello.
     # Il modello deve presentare:
@@ -109,9 +113,9 @@ def main():
         # opimizer: Adam
         # criterion: MSE
         # device: GPU
-        train_loss, train_psnr = train(model, train_iterator, optimizer, criterion, device)
+        train_loss, train_psnr = train(dataset, model, train_iterator, optimizer, criterion, device)
         # Validation
-        valid_loss, valid_psnr = evaluate(model, validation_iterator, criterion, device, logfile)
+        valid_loss, valid_psnr = evaluate(dataset, model, validation_iterator, criterion, device, logfile, test=True, output_dir=".\\output\\test")
         # Save best model
         if valid_loss < best_valid_loss:
             best_valid_loss = valid_loss
