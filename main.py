@@ -21,9 +21,9 @@ parser.add_argument('--batch_size', type=int, default=32)
 parser.add_argument('--load_model', type=str, default=None)
 parser.add_argument('--train_test_ratio', type=float, default=0.8)
 parser.add_argument('--train_validation_ratio', type=float, default=0.8)
-parser.add_argument('--test', type=bool, default=True)
+parser.add_argument('--no-test', action='store_false', dest='test', default=True)
 parser.add_argument('--learning_rate', type=float, default=0.001)
-parser.add_argument('--calculate_stats', type=bool, default=False) # calculate mean and std from dataset
+parser.add_argument('--no-recalculate-stats', action='store_false', dest='recalculate_stats', default=True) # calculate mean and std from dataset
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 torch.manual_seed(0)
@@ -61,7 +61,7 @@ def main():
     train_data, validation_data, test_data = random_split(dataset, [num_train_examples, num_val_examples, num_test_examples])
 
     # normalizzo il dataset rispetto alle statistiche di train_data
-    dataset.normalization(train_data, args.calculate_stats, args.out_dir)
+    dataset.normalization(args.recalculate_stats, args.out_dir)
 
     train_iterator = DataLoader(dataset=train_data, batch_size=batch_size, pin_memory=True, shuffle=False)
     validation_iterator = DataLoader(dataset=validation_data, batch_size=batch_size, pin_memory=True)
@@ -113,6 +113,7 @@ def main():
     data['total_epoche'] = total_epoch
     data['number_parameters'] = count_parameters(model)
 
+    print('Start training.')
     # Loop over epochs
     # Se il modello è già stato eseguito per un numero determinato di epoches, eseguo solo quelle rimanenti
     for epoch in range(model.epoch, total_epoch):
@@ -134,8 +135,8 @@ def main():
         
         print(f"\nEpoch: {epoch+1}/{total_epoch} -- Epoch Time: {end_time-start_time:.2f} s")
         print("---------------------------------")
-        print(f"Train -- Loss: {train_loss:.3f}, PSNR: {train_psnr:.3f}")
-        print(f"Val -- Loss: {valid_loss:.3f}, PSNR: {valid_psnr:.3f}")
+        print(f"Train -- Loss: {train_loss:.3f}, PSNR: {train_psnr:.3f}dB")
+        print(f"Val -- Loss: {valid_loss:.3f}, PSNR: {valid_psnr:.3f}dB")
 
         # Save
         train_losses.append(train_loss)
@@ -155,8 +156,9 @@ def main():
         data[f'epoch_{epoch}']['valid_psnr'] = valid_psnrs
 
     if test:
+        print('Start testing.')
         test_loss, test_psnr = evaluate(dataset, model, test_iterator, criterion, device, test= test, output_dir= result_dir)
-        print(f"Test -- Loss: {test_loss:.3f}, PSNR: {test_psnr:.3f}")
+        print(f"Test -- Loss: {test_loss:.3f}, PSNR: {test_psnr:.3f}dB")
         data['test_results'] = {}
         data['test_results']['test_loss'] = test_loss
         data['test_results']['test_psnr'] = test_psnr
