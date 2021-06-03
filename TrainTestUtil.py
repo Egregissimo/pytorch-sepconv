@@ -2,6 +2,8 @@ from torch.nn import MSELoss
 import torch
 from math import log10
 import os
+import matplotlib.pyplot as plt
+import numpy as np
 from shutil import rmtree
 from torchvision.utils import save_image as imwrite
 from torchvision import transforms
@@ -52,18 +54,20 @@ def train(dataset, model, iterator, optimizer, criterion, device):
 
     return epoch_loss/len(iterator), epoch_psnr/len(iterator)
 
-def evaluate(dataset, model, iterator, criterion, device, logfile=None, test=False, output_dir=None):
+def evaluate(dataset, model, iterator, criterion, device, test=False, output_dir=None):
     epoch_loss = 0
     epoch_psnr = 0
-
-    if logfile is not None and not test:
-        logfile.write(f'Epoch: {model.epoch.item()}\n')
 
     # Evaluation mode
     model.eval()
 
     # Do not compute gradients
     with torch.no_grad():
+
+        if test:
+            if os.path.exists(output_dir):
+                rmtree(output_dir, ignore_errors = False)
+            os.makedirs(output_dir)
 
         for idx, (x0, y, x1) in enumerate(iterator):
             x0 = x0.to(device)
@@ -89,15 +93,27 @@ def evaluate(dataset, model, iterator, criterion, device, logfile=None, test=Fal
             epoch_loss += loss.item()
             epoch_psnr += psnr
 
-            if not test:
-                if logfile is not None:
-                    logfile.write(f'Validation example n.{idx} PSNR: {psnr}\n')
-            else:
-                if os.path.exists(output_dir):
-                    rmtree(output_dir, ignore_errors = False)
-                os.makedirs(output_dir)
+            if test:
                 for j in range(y.size()[0]):
-                    imwrite(y[j], f'{output_dir}/batchItem_{str(j).zfill(3)}_batch_{idx}_label.png')
-                    imwrite(y_pred[j], f'{output_dir}/batchItem_{str(j).zfill(3)}_batch_{idx}_pred.png')
+                    imwrite(y[j], f'{output_dir}/batch_{str(idx).zfill(3)}_batchItem_{str(j).zfill(3)}_label.png')
+                    imwrite(y_pred[j], f'{output_dir}/batch_{str(idx).zfill(3)}_batchItem_{str(j).zfill(3)}_pred.png')
 
     return epoch_loss/len(iterator), epoch_psnr/len(iterator)
+
+def plot_results(n_epochs, train_losses, train_psnrs, valid_losses, valid_psnrs, output_dir):
+    N_EPOCHS = n_epochs
+    # Plot results
+    plt.figure(figsize=(20, 6))
+    _ = plt.subplot(1,2,1)
+    plt.plot(np.arange(N_EPOCHS)+1, train_losses, linewidth=3)
+    plt.plot(np.arange(N_EPOCHS)+1, valid_losses, linewidth=3)
+    _ = plt.legend(['Train', 'Validation'])
+    plt.grid('on'), plt.xlabel('Epoch'), plt.ylabel('Loss')
+
+    _ = plt.subplot(1,2,2)
+    plt.plot(np.arange(N_EPOCHS)+1, train_psnrs, linewidth=3)
+    plt.plot(np.arange(N_EPOCHS)+1, valid_psnrs, linewidth=3)
+    _ = plt.legend(['Train', 'Validation'])
+    plt.grid('on'), plt.xlabel('Epoch'), plt.ylabel('Peak Signal to Noise Ratio')
+
+    plt.savefig(output_dir + '/train_valid_graph.png')

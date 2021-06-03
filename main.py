@@ -3,11 +3,12 @@ from torch.nn import MSELoss
 from torch.utils.data import DataLoader, random_split
 import torch.optim as optim
 from model import SepConvNet
-from TrainTestUtil import train, evaluate
+from TrainTestUtil import train, evaluate, plot_results
 import time
 import argparse
 import torch
 import os
+import json
 
 parser = argparse.ArgumentParser(description='SepConv Pytorch')
 
@@ -44,9 +45,6 @@ def main():
         os.makedirs(result_dir)
     if not os.path.exists(ckpt_dir):
         os.makedirs(ckpt_dir)
-
-    logfile = open(args.out_dir + '/log.txt', 'w')
-    logfile.write(f'batch_size: {args.batch_size}\n')
 
     total_epoch = args.epochs
     batch_size = args.batch_size
@@ -86,9 +84,6 @@ def main():
         model = SepConvNet(kernel_size=kernel_size)
 
     print(f'The model has {count_parameters(model)} parameters.')
-    logfile.write(f'number of parameter: {count_parameters(model)}\n')
-
-    logfile.write(f'kernel_size: {kernel_size}\n')
     model = model.to(device)
 
     # Loss
@@ -107,6 +102,17 @@ def main():
     valid_losses = []
     valid_psnrs = []
 
+    # Write data
+    data = {}
+    # Il nome serve per sovrascrivere i risultati se eseguo la stessa rete più volte
+    nameNet = f'{type(criterion).__name__}_{type(optimizer).__name__}_{batch_size}_{kernel_size}_{total_epoch}'
+    data['criterion'] = type(criterion).__name__
+    data['optimizer'] = type(optimizer).__name__
+    data['batch_size'] = batch_size
+    data['kernel_size'] = kernel_size
+    data['total_epoche'] = total_epoch
+    data['number_parameters'] = count_parameters(model)
+
     # Loop over epochs
     # Se il modello è già stato eseguito per un numero determinato di epoches, eseguo solo quelle rimanenti
     for epoch in range(model.epoch, total_epoch):
@@ -116,7 +122,7 @@ def main():
         # device: GPU
         train_loss, train_psnr = train(dataset, model, train_iterator, optimizer, criterion, device)
         # Validation
-        valid_loss, valid_psnr = evaluate(dataset, model, validation_iterator, criterion, device, logfile, test=True, output_dir=".\\output\\test")
+        valid_loss, valid_psnr = evaluate(dataset, model, validation_iterator, criterion, device)
         # Save best model
         if valid_loss < best_valid_loss:
             best_valid_loss = valid_loss
@@ -137,11 +143,36 @@ def main():
         valid_losses.append(valid_loss)
         valid_psnrs.append(valid_psnr)
 
+    if args.load_model is None:
+        # Plot results
+        plot_results(total_epoch, train_losses, train_psnrs, valid_losses, valid_psnrs, args.out_dir)
+
+        # Write results
+        data[f'epoch_{epoch}'] = {}
+        data[f'epoch_{epoch}']['train_loss'] = train_losses
+        data[f'epoch_{epoch}']['train_psnr'] = train_psnrs
+        data[f'epoch_{epoch}']['valid_loss'] = valid_losses
+        data[f'epoch_{epoch}']['valid_psnr'] = valid_psnrs
+
     if test:
         test_loss, test_psnr = evaluate(dataset, model, test_iterator, criterion, device, test= test, output_dir= result_dir)
         print(f"Test -- Loss: {test_loss:.3f}, PSNR: {test_psnr:.3f}")
+        data['test_results'] = {}
+        data['test_results']['test_loss'] = test_loss
+        data['test_results']['test_psnr'] = test_psnr
 
-    logfile.close()
+    # Write file
+    if not os.path.exists(args.out_dir + '/log.json'):
+        with open(args.out_dir + '/log.json', 'w') as json_file:
+            json.dump({}, json_file)
+
+    with open(args.out_dir + '/log.json') as json_file:
+        file = json.load(json_file)
+
+    file[nameNet] = data
+
+    with open(args.out_dir + '/log.json', 'w') as json_file:
+        json.dump(file, json_file)
 
 
 if __name__ == "__main__":
