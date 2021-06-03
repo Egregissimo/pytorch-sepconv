@@ -39,7 +39,7 @@ def train(dataset, model, iterator, optimizer, criterion, device):
 
         # Compute psnr
         mse = MSELoss()
-        psnr = 10 * log10(1 / mse(y_pred, y).item())
+        psnr = 10 * log10(255**2 / mse(y_pred, y).item())
 
         # Backprop
         loss.backward()
@@ -87,7 +87,7 @@ def evaluate(dataset, model, iterator, criterion, device, test=False, output_dir
 
             # Compute psnr
             mse = MSELoss()
-            psnr = 10 * log10(1 / mse(y_pred, y).item())
+            psnr = 10 * log10(255**2 / mse(y_pred, y).item())
 
             # Extract data from loss and psnr
             epoch_loss += loss.item()
@@ -95,8 +95,7 @@ def evaluate(dataset, model, iterator, criterion, device, test=False, output_dir
 
             if test:
                 for j in range(y.size()[0]):
-                    imwrite(y[j], f'{output_dir}/batch_{str(idx).zfill(3)}_batchItem_{str(j).zfill(3)}_label.png')
-                    imwrite(y_pred[j], f'{output_dir}/batch_{str(idx).zfill(3)}_batchItem_{str(j).zfill(3)}_pred.png')
+                    imwrite([y_pred[j], y[j]], f'{output_dir}/batch_{str(idx).zfill(3)}_batchItem_{str(j).zfill(3)}_example.png')
 
     return epoch_loss/len(iterator), epoch_psnr/len(iterator)
 
@@ -114,6 +113,6 @@ def plot_results(n_epochs, train_losses, train_psnrs, valid_losses, valid_psnrs,
     plt.plot(np.arange(N_EPOCHS)+1, train_psnrs, linewidth=3)
     plt.plot(np.arange(N_EPOCHS)+1, valid_psnrs, linewidth=3)
     _ = plt.legend(['Train', 'Validation'])
-    plt.grid('on'), plt.xlabel('Epoch'), plt.ylabel('Peak Signal to Noise Ratio')
+    plt.grid('on'), plt.xlabel('Epoch'), plt.ylabel('Peak Signal to Noise Ratio (dB)')
 
     plt.savefig(output_dir + '/train_valid_graph.png')

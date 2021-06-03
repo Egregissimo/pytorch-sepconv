@@ -2,8 +2,9 @@
 .vs/**
 *.mp4
 *.avi
+dataset/frames/**
+dataset/frames_old/**
 dataset/UCF-101/**
-dataset/input_images/**
 *.png
 *.jpg
 output/**
