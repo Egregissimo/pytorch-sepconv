@@ -1,7 +1,5 @@
 - provare diverse loss functions
-- normalizzazione
 -- suddivisione training set in train test e validation
 - provare diversi upsampling (Bilinear, Best neighborhood)
 - provare il dropout
 -- produrre grafici e confrontare i risultati
-- scrivere meglio la funzione per calcolare l'accuracy (con un valore soglia)
