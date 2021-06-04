@@ -29,7 +29,6 @@ class KernelEstimation(torch.nn.Module):
                 torch.nn.ReLU(inplace=False),
                 #torch.nn.Conv2d(in_channels=output_channel, out_channels=output_channel, kernel_size=3, stride=1, padding=1),
                 #torch.nn.ReLU(inplace=False),
-                #torch.nn.Dropout(p=0.2)
             )
 
         # Layer chiamato più volte che raddoppia la dimensione dell'input, effettuando una convoluzione e usando la ReLU

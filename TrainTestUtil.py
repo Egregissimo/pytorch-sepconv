@@ -22,30 +22,61 @@ class FELoss (torch.nn.Module):
         self.vgg.to(device)
 
         # Uso solo una parte della rete VGG-19. Fino al layer relu4_4
-        self.vgg.features = self.vgg.features[:25]
-        self.vgg.classifier = self.vgg.features[24]
+        self.vgg.features = self.vgg.features[:9]
+        self.vgg.classifier = self.vgg.features[8]
         self.vgg.features = self.vgg.features[:-1]
 
 # La funzione implementa automaticamente la backpropagation, dato che lavora con i Tensor
     i = 0
     def forward(self, y_pred, y):
         self.vgg.eval()
-        #with torch.no_grad():
-        self.vgg.eval()
         y_pred = self.vgg(y_pred)
         y = self.vgg(y)
 
         # visualizzo le feature maps ogni 100 batchs
+        #if self.i % 100 == 0:
+        #    fig, axs = plt.subplots(2)
+        #    var1 = y_pred.cpu().detach().numpy()
+        #    var2 = y.cpu().detach().numpy()
+        #    axs[0].imshow(var1.reshape(-1,112)[:300,:])
+        #    axs[1].imshow(var2.reshape(-1,112)[:300,:])
+        #    plt.show()
+        #self.i += 1
+        return MSELoss()(y_pred, y)
+
+class FixedKernelLoss (torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        #sobel filter
+        conv_2d = torch.nn.Conv2d(in_channels = 3, out_channels = 3, kernel_size = 3, padding=1)
+        s = torch.FloatTensor([[1, .5, -1],
+                               [2, .5, -2],
+                               [1, .5, -1]])
+
+        conv_2d.weight.data[0][0] = s
+        self.model = torch.nn.Sequential(
+            conv_2d,
+            torch.nn.ReLU(inplace=False),
+            torch.nn.AvgPool2d(kernel_size=2, stride=2)
+        )
+        self.model.to(device)
+
+# La funzione implementa automaticamente la backpropagation, dato che lavora con i Tensor
+    i = 0
+    def forward(self, y_pred, y):
+        self.model.eval()
+        y_pred = self.model(y_pred)
+        y = self.model(y)
+        # visualizzo le feature maps ogni 100 batchs
         if self.i % 100 == 0:
-            fig, axs = plt.subplots(2)
+            f, (ax1, ax2) = plt.subplots(1, 2)
             var1 = y_pred.cpu().detach().numpy()
             var2 = y.cpu().detach().numpy()
-            axs[0].imshow(var1.reshape(28*28,-1))
-            axs[1].imshow(var2.reshape(28*28,-1))
+            ax1.imshow(var1.reshape(-1,64)[:64*7,:])
+            ax2.imshow(var2.reshape(-1,64)[:64*7,:])
             plt.show()
         self.i += 1
         return MSELoss()(y_pred, y)
-
 
 def train(dataset, model, iterator, optimizer, criterion, device):
     epoch_loss = 0

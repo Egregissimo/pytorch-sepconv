@@ -3,7 +3,7 @@ from torch.nn import MSELoss
 from torch.utils.data import DataLoader, random_split
 import torch.optim as optim
 from model import SepConvNet
-from TrainTestUtil import train, evaluate, plot_results, FELoss
+from TrainTestUtil import FixedKernelLoss, train, evaluate, plot_results, FELoss
 import time
 import argparse
 import torch
@@ -16,7 +16,7 @@ parser = argparse.ArgumentParser(description='SepConv Pytorch')
 parser.add_argument('--database', type=str, default='./dataset/frames')
 parser.add_argument('--kernel', type=int, default=51)
 parser.add_argument('--out_dir', type=str, default='./output')
-parser.add_argument('--epochs', type=int, default=1)
+parser.add_argument('--epochs', type=int, default=3)
 parser.add_argument('--batch_size', type=int, default=32)
 parser.add_argument('--load_model', type=str, default=None)
 parser.add_argument('--train_test_ratio', type=float, default=0.8)
@@ -89,7 +89,8 @@ def main():
     # Loss
     #
     # criterion = MSELoss()
-    criterion = FELoss()
+    #criterion = FELoss()
+    criterion = FixedKernelLoss()
     criterion = criterion.to(device)
 
     #Optimizer
