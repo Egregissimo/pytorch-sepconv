@@ -13,3 +13,6 @@ For the creation of the dataset some things were modified:
 - aggiunta normalizzazione e successiva denormalizzazione in output per migliorare il learning (ciò in effetti 
   migliora un pochino la loss). Una volta calcolata la normalizzazione questa viene salvata su file 
   per evitare di calcolarla ogni volta
+- usando l'output del layer conv4_4 di vgg16 come loss function, le immagini previste sono molto chiare, a discapito,
+  nel caso ci sia un grosso movimento, della precisione dell'interpolazione. In questo caso viene dato in output 
+  il frame 0 o 2

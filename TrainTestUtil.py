@@ -8,34 +8,43 @@ from shutil import rmtree
 from torchvision.utils import save_image as imwrite
 from torchvision import transforms
 from torchvision.models import vgg19
+import cv2 as cv
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def compute_psnr(y_pred, y):
     return 10 * log10(255**2 / MSELoss()(y_pred, y).item())
 
-# La funzione implementa automaticamente la backpropagation, dato che lavora con i Tensor
-def feature_extraction_loss(y_pred, y):
-    vgg = vgg19(pretrained=True)
-    vgg.to(device)
-
-    # Uso solo una parte della rete VGG-19. Fino al layer relu4_4
-    vgg.features = vgg.features[:25]
-    vgg.classifier = vgg.features[24]
-    vgg.features = vgg.features[:-1]
-
-    vgg.eval()
-    with torch.no_grad():
-        y_pred = vgg(y_pred)
-        y = vgg(y)
-    vgg.train()
-
-    return MSELoss()(y_pred, y)
-
 class FELoss (torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.vgg = vgg19(pretrained=True)
+        self.vgg.to(device)
 
+        # Uso solo una parte della rete VGG-19. Fino al layer relu4_4
+        self.vgg.features = self.vgg.features[:25]
+        self.vgg.classifier = self.vgg.features[24]
+        self.vgg.features = self.vgg.features[:-1]
+
+# La funzione implementa automaticamente la backpropagation, dato che lavora con i Tensor
+    i = 0
     def forward(self, y_pred, y):
-        return feature_extraction_loss(y_pred, y)
+        self.vgg.eval()
+        #with torch.no_grad():
+        self.vgg.eval()
+        y_pred = self.vgg(y_pred)
+        y = self.vgg(y)
+
+        # visualizzo le feature maps ogni 100 batchs
+        if self.i % 100 == 0:
+            fig, axs = plt.subplots(2)
+            var1 = y_pred.cpu().detach().numpy()
+            var2 = y.cpu().detach().numpy()
+            axs[0].imshow(var1.reshape(28*28,-1))
+            axs[1].imshow(var2.reshape(28*28,-1))
+            plt.show()
+        self.i += 1
+        return MSELoss()(y_pred, y)
 
 
 def train(dataset, model, iterator, optimizer, criterion, device):
@@ -59,9 +68,9 @@ def train(dataset, model, iterator, optimizer, criterion, device):
         y_pred = model(x0, x1)
 
         # denormalize the image to get the correct loss and psnr
-        denormalize = transforms.Normalize((-1 * dataset.mean / dataset.std), (1.0 / dataset.std))
-        y_pred = denormalize(y_pred)
-        y = denormalize(y)
+        #denormalize = transforms.Normalize((-1 * dataset.mean / dataset.std), (1.0 / dataset.std))
+        #y_pred = denormalize(y_pred)
+        #y = denormalize(y)
 
         # Compute loss
         # restituisce un Tensor
@@ -107,9 +116,9 @@ def evaluate(dataset, model, iterator, criterion, device, test=False, output_dir
             y_pred = model(x0, x1)
 
             # denormalize the image to get the correct loss and psnr
-            denormalize = transforms.Normalize((-1 * dataset.mean / dataset.std), (1.0 / dataset.std))
-            y_pred = denormalize(y_pred)
-            y = denormalize(y)
+            #denormalize = transforms.Normalize((-1 * dataset.mean / dataset.std), (1.0 / dataset.std))
+            #y_pred = denormalize(y_pred)
+            #y = denormalize(y)
 
             # Compute loss
             loss = criterion(y_pred, y)
