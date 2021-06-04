@@ -1,5 +1,3 @@
 - provare diverse loss functions
--- suddivisione training set in train test e validation
 - provare diversi upsampling (Bilinear, Best neighborhood)
 - provare il dropout
--- produrre grafici e confrontare i risultati

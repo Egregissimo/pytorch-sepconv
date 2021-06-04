@@ -7,6 +7,36 @@ import numpy as np
 from shutil import rmtree
 from torchvision.utils import save_image as imwrite
 from torchvision import transforms
+from torchvision.models import vgg19
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+def compute_psnr(y_pred, y):
+    return 10 * log10(255**2 / MSELoss()(y_pred, y).item())
+
+# La funzione implementa automaticamente la backpropagation, dato che lavora con i Tensor
+def feature_extraction_loss(y_pred, y):
+    vgg = vgg19(pretrained=True)
+    vgg.to(device)
+
+    # Uso solo una parte della rete VGG-19. Fino al layer relu4_4
+    vgg.features = vgg.features[:25]
+    vgg.classifier = vgg.features[24]
+    vgg.features = vgg.features[:-1]
+
+    vgg.eval()
+    with torch.no_grad():
+        y_pred = vgg(y_pred)
+        y = vgg(y)
+    vgg.train()
+
+    return MSELoss()(y_pred, y)
+
+class FELoss (torch.nn.Module):
+
+    def forward(self, y_pred, y):
+        return feature_extraction_loss(y_pred, y)
+
 
 def train(dataset, model, iterator, optimizer, criterion, device):
     epoch_loss = 0
@@ -38,8 +68,7 @@ def train(dataset, model, iterator, optimizer, criterion, device):
         loss = criterion(y_pred, y)
 
         # Compute psnr
-        mse = MSELoss()
-        psnr = 10 * log10(255**2 / mse(y_pred, y).item())
+        psnr = compute_psnr(y_pred, y)
 
         # Backprop
         loss.backward()
@@ -86,8 +115,7 @@ def evaluate(dataset, model, iterator, criterion, device, test=False, output_dir
             loss = criterion(y_pred, y)
 
             # Compute psnr
-            mse = MSELoss()
-            psnr = 10 * log10(255**2 / mse(y_pred, y).item())
+            psnr = compute_psnr(y_pred, y)
 
             # Extract data from loss and psnr
             epoch_loss += loss.item()
@@ -107,7 +135,7 @@ def plot_results(n_epochs, train_losses, train_psnrs, valid_losses, valid_psnrs,
     plt.plot(np.arange(N_EPOCHS)+1, train_losses, linewidth=3)
     plt.plot(np.arange(N_EPOCHS)+1, valid_losses, linewidth=3)
     _ = plt.legend(['Train', 'Validation'])
-    plt.grid('on'), plt.xlabel('Epoch'), plt.ylabel('Loss')
+    plt.grid('on'), plt.xlabel('Epoch'), plt.ylabel('Loss'), plt.yscale('log')
 
     _ = plt.subplot(1,2,2)
     plt.plot(np.arange(N_EPOCHS)+1, train_psnrs, linewidth=3)

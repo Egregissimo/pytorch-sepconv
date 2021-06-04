@@ -39,8 +39,7 @@ class DBreader_frame_interpolation(Dataset):
             std_list = []
             for dataFolder in self.triplet_list:
                 data = Image.open(dataFolder)
-                toTensor = transforms.ToTensor()
-                data = toTensor(data)
+                data = transforms.ToTensor()(data)
                 mean_list.append(data.mean())
                 std_list.append(data.std())
             # media e varianza sono calcolate come media di tutte quelle dei vari batch

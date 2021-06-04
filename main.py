@@ -3,7 +3,7 @@ from torch.nn import MSELoss
 from torch.utils.data import DataLoader, random_split
 import torch.optim as optim
 from model import SepConvNet
-from TrainTestUtil import train, evaluate, plot_results
+from TrainTestUtil import train, evaluate, plot_results, FELoss
 import time
 import argparse
 import torch
@@ -23,7 +23,7 @@ parser.add_argument('--train_test_ratio', type=float, default=0.8)
 parser.add_argument('--train_validation_ratio', type=float, default=0.8)
 parser.add_argument('--no-test', action='store_false', dest='test', default=True)
 parser.add_argument('--learning_rate', type=float, default=0.001)
-parser.add_argument('--no-recalculate-stats', action='store_false', dest='recalculate_stats', default=True) # calculate mean and std from dataset
+parser.add_argument('--recalculate-stats', action='store_true', default=False) # calculate mean and std from dataset
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 torch.manual_seed(0)
@@ -88,10 +88,12 @@ def main():
 
     # Loss
     criterion = MSELoss()
+    # criterion = FELoss()
     criterion = criterion.to(device)
 
     #Optimizer
-    optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
+    # optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
+    optimizer = optim.Adamax(model.parameters(), lr=args.learning_rate)
 
     # Initialize validation loss
     best_valid_loss = float('inf')
@@ -106,6 +108,7 @@ def main():
     data = {}
     # Il nome serve per sovrascrivere i risultati se eseguo la stessa rete più volte
     nameNet = f'{type(criterion).__name__}_{type(optimizer).__name__}_{batch_size}_{kernel_size}_{total_epoch}'
+    print(nameNet)
     data['criterion'] = type(criterion).__name__
     data['optimizer'] = type(optimizer).__name__
     data['batch_size'] = batch_size
@@ -149,14 +152,14 @@ def main():
         plot_results(total_epoch, train_losses, train_psnrs, valid_losses, valid_psnrs, args.out_dir)
 
         # Write results
-        data[f'epoch_{epoch}'] = {}
-        data[f'epoch_{epoch}']['train_loss'] = train_losses
-        data[f'epoch_{epoch}']['train_psnr'] = train_psnrs
-        data[f'epoch_{epoch}']['valid_loss'] = valid_losses
-        data[f'epoch_{epoch}']['valid_psnr'] = valid_psnrs
+        data[f'epochs'] = {}
+        data[f'epochs']['train_loss'] = train_losses
+        data[f'epochs']['train_psnr'] = train_psnrs
+        data[f'epochs']['valid_loss'] = valid_losses
+        data[f'epochs']['valid_psnr'] = valid_psnrs
 
     if test:
-        print('Start testing.')
+        print('\nStart testing.')
         test_loss, test_psnr = evaluate(dataset, model, test_iterator, criterion, device, test= test, output_dir= result_dir)
         print(f"Test -- Loss: {test_loss:.3f}, PSNR: {test_psnr:.3f}dB")
         data['test_results'] = {}
@@ -174,7 +177,7 @@ def main():
     file[nameNet] = data
 
     with open(args.out_dir + '/log.json', 'w') as json_file:
-        json.dump(file, json_file)
+        json.dump(file, json_file, sort_keys=True, indent=4)
 
 
 if __name__ == "__main__":
