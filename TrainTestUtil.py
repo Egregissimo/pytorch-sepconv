@@ -35,12 +35,13 @@ class FELoss (torch.nn.Module):
 
         # visualizzo le feature maps ogni 100 batchs
         if self.i % 100 == 0:
-            f, (ax1, ax2) = plt.subplots(1, 2)
-            var1 = y_pred.cpu().detach().numpy()
-            var2 = y.cpu().detach().numpy()
-            ax1.imshow(var1.reshape(-1,7*2*2*2)[:64*7,:])
-            ax2.imshow(var2.reshape(-1,7*2*2*2)[:64*7,:])
-            plt.show()
+            #f, (ax1, ax2) = plt.subplots(1, 2)
+            #var1 = y_pred.cpu().detach().numpy()
+            #var2 = y.cpu().detach().numpy()
+            #ax1.imshow(var1.reshape(-1,7*2*2*2)[:64*7,:])
+            #ax2.imshow(var2.reshape(-1,7*2*2*2)[:64*7,:])
+            #plt.show()
+            plot_feature_map(y_pred, y, f'featureMap{self.i}')
         self.i += 1
         return MSELoss()(y_pred, y)
 
@@ -84,6 +85,9 @@ class FixedKernelLoss (torch.nn.Module):
         #    ax2.imshow(var2.reshape(-1,64)[:64*7,:])
         #    plt.show()
         #self.i += 1
+        if self.i % 100 == 0:
+            plot_feature_map(y_pred, y, f'featureMap{self.i}')
+        self.i += 1
         return MSELoss()(y_pred, y)
 
 def train(dataset, model, iterator, optimizer, criterion, device):
@@ -141,9 +145,8 @@ def evaluate(dataset, model, iterator, criterion, device, test=False, output_dir
     # Do not compute gradients
     with torch.no_grad():
 
-        if test:
-            if os.path.exists(output_dir):
-                rmtree(output_dir, ignore_errors = False)
+        if test and os.path.exists(output_dir):
+            rmtree(output_dir, ignore_errors = False)
             os.makedirs(output_dir)
 
         for idx, (x0, y, x1) in enumerate(iterator):
@@ -171,7 +174,10 @@ def evaluate(dataset, model, iterator, criterion, device, test=False, output_dir
 
             if test:
                 for j in range(y.size()[0]):
-                    imwrite([y_pred[j], y[j]], f'{output_dir}/batch_{str(idx).zfill(3)}_batchItem_{str(j).zfill(3)}_example.png')
+                    blank_image = torch.full((3, 128,128), 255).to(device)
+                    # Affianco la tripletta di immagini dell'esempio con l'immagine predetta
+                    images = [x0[j], y[j], x1[j], blank_image, y_pred[j], blank_image]
+                    imwrite(images, f'{output_dir}/batch_{str(idx).zfill(3)}_batchItem_{str(j).zfill(3)}_example.png', nrow=3)
 
     return epoch_loss/len(iterator), epoch_psnr/len(iterator)
 
@@ -192,3 +198,20 @@ def plot_results(n_epochs, train_losses, train_psnrs, valid_losses, valid_psnrs,
     plt.grid('on'), plt.xlabel('Epoch'), plt.ylabel('Peak Signal to Noise Ratio (dB)')
 
     plt.savefig(output_dir + '/train_valid_graph.png')
+
+def plot_feature_map(y_pred, y, nameFigure):
+    f, (ax1, ax2) = plt.subplots(1, 2)
+    var1 = y_pred.cpu().detach().numpy()
+    var2 = y.cpu().detach().numpy()
+    size = var1.shape[-1]
+    ax1.axis('off')
+    ax1.set_title('Prediction')
+    ax2.axis('off')
+    ax2.set_title('Label')
+    ax1.imshow(var1.reshape(-1,size)[:size*7,:])
+    ax2.imshow(var2.reshape(-1,size)[:size*7,:])
+
+    if not os.path.exists('output/fixedKernelFeatureMap'):
+        os.makedirs('output/fixedKernelFeatureMap')
+    plt.savefig(f'output/fixedKernelFeatureMap/{nameFigure}.png')
+    # plt.show()

@@ -22,7 +22,7 @@ parser.add_argument('--load_model', type=str, default=None)
 parser.add_argument('--train_test_ratio', type=float, default=0.8)
 parser.add_argument('--train_validation_ratio', type=float, default=0.8)
 parser.add_argument('--no-test', action='store_false', dest='test', default=True)
-parser.add_argument('--learning_rate', type=float, default=0.001)
+parser.add_argument('--learning-rate', type=float, default=0.001)
 parser.add_argument('--recalculate-stats', action='store_true', default=False) # calculate mean and std from dataset
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -87,9 +87,8 @@ def main():
     model = model.to(device)
 
     # Loss
-    #
     # criterion = MSELoss()
-    #criterion = FELoss()
+    # criterion = FELoss()
     criterion = FixedKernelLoss()
     criterion = criterion.to(device)
 
@@ -110,7 +109,6 @@ def main():
     data = {}
     # Il nome serve per sovrascrivere i risultati se eseguo la stessa rete più volte
     nameNet = f'{type(criterion).__name__}_{type(optimizer).__name__}_{batch_size}_{kernel_size}_{total_epoch}'
-    print(nameNet)
     data['criterion'] = type(criterion).__name__
     data['optimizer'] = type(optimizer).__name__
     data['batch_size'] = batch_size
