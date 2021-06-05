@@ -26,7 +26,7 @@ class FELoss (torch.nn.Module):
         self.vgg.classifier = self.vgg.features[8]
         self.vgg.features = self.vgg.features[:-1]
 
-# La funzione implementa automaticamente la backpropagation, dato che lavora con i Tensor
+    # La funzione implementa automaticamente la backpropagation, dato che lavora con i Tensor
     i = 0
     def forward(self, y_pred, y):
         self.vgg.eval()
@@ -34,26 +34,34 @@ class FELoss (torch.nn.Module):
         y = self.vgg(y)
 
         # visualizzo le feature maps ogni 100 batchs
-        #if self.i % 100 == 0:
-        #    fig, axs = plt.subplots(2)
-        #    var1 = y_pred.cpu().detach().numpy()
-        #    var2 = y.cpu().detach().numpy()
-        #    axs[0].imshow(var1.reshape(-1,112)[:300,:])
-        #    axs[1].imshow(var2.reshape(-1,112)[:300,:])
-        #    plt.show()
-        #self.i += 1
+        if self.i % 100 == 0:
+            f, (ax1, ax2) = plt.subplots(1, 2)
+            var1 = y_pred.cpu().detach().numpy()
+            var2 = y.cpu().detach().numpy()
+            ax1.imshow(var1.reshape(-1,7*2*2*2)[:64*7,:])
+            ax2.imshow(var2.reshape(-1,7*2*2*2)[:64*7,:])
+            plt.show()
+        self.i += 1
         return MSELoss()(y_pred, y)
 
 class FixedKernelLoss (torch.nn.Module):
     def __init__(self):
         super().__init__()
-        #sobel filter
-        conv_2d = torch.nn.Conv2d(in_channels = 3, out_channels = 3, kernel_size = 3, padding=1)
-        s = torch.FloatTensor([[1, .5, -1],
+        #sobel filter with central color in both directions
+        conv_2d = torch.nn.Conv2d(in_channels = 3, out_channels = 6, kernel_size = 3, padding=1)
+        s1 = torch.FloatTensor([[1, 0, -1],
                                [2, .5, -2],
-                               [1, .5, -1]])
+                               [1,  0, -1]])
+        s2 = torch.FloatTensor([[1, 2, 1],
+                               [0, .5, 0],
+                               [-1,-2, -1]])
 
-        conv_2d.weight.data[0][0] = s
+        conv_2d.weight.data[0][0] = s1
+        conv_2d.weight.data[1][0] = s1
+        conv_2d.weight.data[2][0] = s1
+        conv_2d.weight.data[3][0] = s2
+        conv_2d.weight.data[4][0] = s2
+        conv_2d.weight.data[5][0] = s2
         self.model = torch.nn.Sequential(
             conv_2d,
             torch.nn.ReLU(inplace=False),
@@ -61,21 +69,21 @@ class FixedKernelLoss (torch.nn.Module):
         )
         self.model.to(device)
 
-# La funzione implementa automaticamente la backpropagation, dato che lavora con i Tensor
+    # La funzione implementa automaticamente la backpropagation, dato che lavora con i Tensor
     i = 0
     def forward(self, y_pred, y):
         self.model.eval()
         y_pred = self.model(y_pred)
         y = self.model(y)
         # visualizzo le feature maps ogni 100 batchs
-        if self.i % 100 == 0:
-            f, (ax1, ax2) = plt.subplots(1, 2)
-            var1 = y_pred.cpu().detach().numpy()
-            var2 = y.cpu().detach().numpy()
-            ax1.imshow(var1.reshape(-1,64)[:64*7,:])
-            ax2.imshow(var2.reshape(-1,64)[:64*7,:])
-            plt.show()
-        self.i += 1
+        #if self.i % 200 == 0:
+        #    f, (ax1, ax2) = plt.subplots(1, 2)
+        #    var1 = y_pred.cpu().detach().numpy()
+        #    var2 = y.cpu().detach().numpy()
+        #    ax1.imshow(var1.reshape(-1,64)[:64*7,:])
+        #    ax2.imshow(var2.reshape(-1,64)[:64*7,:])
+        #    plt.show()
+        #self.i += 1
         return MSELoss()(y_pred, y)
 
 def train(dataset, model, iterator, optimizer, criterion, device):

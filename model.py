@@ -140,6 +140,17 @@ class KernelEstimation(torch.nn.Module):
 
         return Vertical1, Horizontal1, Vertical2, Horizontal2
 
+# viene usata per migliorare l'immagine in output
+class TuneNet (torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.model = torch.nn.Sequential(
+            torch.nn.Conv2d(in_channels=3, out_channels=3, kernel_size=3, stride=1, padding=1, groups=3),
+            torch.nn.Conv2d(in_channels=3, out_channels=3, kernel_size=3, stride=1, padding=1, groups=3))
+
+    def forward(self, y):
+        return self.model(y)
+
 
 class SepConvNet(torch.nn.Module):
     def __init__(self, kernel_size):
@@ -152,6 +163,7 @@ class SepConvNet(torch.nn.Module):
         self.epoch = torch.tensor(0, requires_grad=False)
         # rete per stimare i kernel
         self.get_kernel = KernelEstimation(self.kernel_size)
+        self.imageTune = TuneNet()
         self.optimizer = optim.Adam(self.parameters(), lr=0.001)
         self.criterion = torch.nn.MSELoss()
 
@@ -199,7 +211,7 @@ class SepConvNet(torch.nn.Module):
         if w_padded:
             frame1 = frame1[:, :, :, :w0]
 
-        return frame1
+        return self.imageTune(frame1)
 
     def increase_epoch(self):
         self.epoch += 1
