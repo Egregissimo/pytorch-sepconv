@@ -2,9 +2,8 @@
 .vs/**
 *.mp4
 *.avi
-dataset/frames/**
-dataset/frames_old/**
-dataset/UCF-101/**
+dataset/**
+!create_dataset.py
 *.png
 *.jpg
 output/**

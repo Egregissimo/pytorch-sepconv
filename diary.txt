@@ -16,3 +16,6 @@ For the creation of the dataset some things were modified:
 - usando l'output del layer conv4_4 di vgg16 come loss function, le immagini previste sono molto chiare, a discapito,
   nel caso ci sia un grosso movimento, della precisione dell'interpolazione. In questo caso viene dato in output 
   il frame 0 o 2
+- Adam migliore di Adamax
+- Il dropout non porta significativi miglioramenti
+- Aggiunta la possibilità di distanziare gli elementi delle triplette nel dataset
