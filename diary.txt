@@ -19,3 +19,7 @@ For the creation of the dataset some things were modified:
 - Adam migliore di Adamax
 - Il dropout non porta significativi miglioramenti
 - Aggiunta la possibilità di distanziare gli elementi delle triplette nel dataset
+- Aggiunta custom fixed kernel per la loss function, essa evidenzia i contorni e il colore
+- Aggiunti 2 layer convoluzionali in uscita dell'immagine, per cercare di ridurre la sfocatura
+- Facendo training sul logo del dvd, la rete riesce ad imparare a traslarlo correttamente (dopo 10 epoch), se dopo questo learning
+  passo al dataset UCF-101 la loss iniziale è già piuttosto bassa (0.18 con fixed kernel)

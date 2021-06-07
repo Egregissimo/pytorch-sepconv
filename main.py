@@ -13,12 +13,12 @@ import json
 parser = argparse.ArgumentParser(description='SepConv Pytorch')
 
 # parameters
-parser.add_argument('--database', type=str, default='./dataset/frames')
+parser.add_argument('--database', type=str, default='./dataset/101-150000')
 parser.add_argument('--kernel', type=int, default=51)
 parser.add_argument('--out_dir', type=str, default='./output')
 parser.add_argument('--epochs', type=int, default=20)
 parser.add_argument('--batch_size', type=int, default=32)
-parser.add_argument('--load_model', type=str, default=None)
+parser.add_argument('--load_model', type=str, default='output/checkpoint/101-150000_pretrained_8+6epoch.pth')
 parser.add_argument('--train_test_ratio', type=float, default=0.8)
 parser.add_argument('--train_validation_ratio', type=float, default=0.8)
 parser.add_argument('--no-test', action='store_false', dest='test', default=True)
@@ -88,9 +88,9 @@ def main():
 
     # Loss
     # criterion = MSELoss()
-    # criterion = FELoss()
+    criterion = FELoss()
     criterion = FixedKernelLoss()
-    criterion = criterion.to(device)
+    #criterion = criterion.to(device)
 
     #Optimizer
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)

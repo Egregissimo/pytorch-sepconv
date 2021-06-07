@@ -35,13 +35,7 @@ class FELoss (torch.nn.Module):
 
         # visualizzo le feature maps ogni 100 batchs
         if self.i % 100 == 0:
-            #f, (ax1, ax2) = plt.subplots(1, 2)
-            #var1 = y_pred.cpu().detach().numpy()
-            #var2 = y.cpu().detach().numpy()
-            #ax1.imshow(var1.reshape(-1,7*2*2*2)[:64*7,:])
-            #ax2.imshow(var2.reshape(-1,7*2*2*2)[:64*7,:])
-            #plt.show()
-            plot_feature_map(y_pred, y, f'featureMap{self.i}')
+            plot_feature_map(y_pred, y, f'featureMap{self.i}', 112)
         self.i += 1
         return MSELoss()(y_pred, y)
 
@@ -77,16 +71,8 @@ class FixedKernelLoss (torch.nn.Module):
         y_pred = self.model(y_pred)
         y = self.model(y)
         # visualizzo le feature maps ogni 100 batchs
-        #if self.i % 200 == 0:
-        #    f, (ax1, ax2) = plt.subplots(1, 2)
-        #    var1 = y_pred.cpu().detach().numpy()
-        #    var2 = y.cpu().detach().numpy()
-        #    ax1.imshow(var1.reshape(-1,64)[:64*7,:])
-        #    ax2.imshow(var2.reshape(-1,64)[:64*7,:])
-        #    plt.show()
-        #self.i += 1
         if self.i % 100 == 0:
-            plot_feature_map(y_pred, y, f'featureMap{self.i}')
+            plot_feature_map(y_pred, y, f'featureMap{self.i}',64)
         self.i += 1
         return MSELoss()(y_pred, y)
 
@@ -199,19 +185,18 @@ def plot_results(n_epochs, train_losses, train_psnrs, valid_losses, valid_psnrs,
 
     plt.savefig(output_dir + '/train_valid_graph.png')
 
-def plot_feature_map(y_pred, y, nameFigure):
+def plot_feature_map(y_pred, y, nameFigure, width):
     f, (ax1, ax2) = plt.subplots(1, 2)
     var1 = y_pred.cpu().detach().numpy()
     var2 = y.cpu().detach().numpy()
-    size = var1.shape[-1]
     ax1.axis('off')
     ax1.set_title('Prediction')
     ax2.axis('off')
     ax2.set_title('Label')
-    ax1.imshow(var1.reshape(-1,size)[:size*7,:])
-    ax2.imshow(var2.reshape(-1,size)[:size*7,:])
+    ax1.imshow(var1.reshape(-1,width)[:width*7,:])
+    ax2.imshow(var2.reshape(-1,width)[:width*7,:])
 
     if not os.path.exists('output/fixedKernelFeatureMap'):
         os.makedirs('output/fixedKernelFeatureMap')
     plt.savefig(f'output/fixedKernelFeatureMap/{nameFigure}.png')
-    # plt.show()
+    #plt.show()

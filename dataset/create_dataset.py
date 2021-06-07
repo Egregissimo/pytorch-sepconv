@@ -1,4 +1,4 @@
-from numpy import linalg as la
+from numpy import linalg as la, triu_indices_from
 import cv2 as cv
 import random as rnd
 import os
@@ -79,7 +79,7 @@ def extractFromStream(stream, file_name, output_folder, frame_spacing, crops_per
                     for _ in range(crops_per_frame):
                         random_crops.append((rnd.randint( 0, height - crop_size), rnd.randint(0, width - crop_size)))
                 # crop the current frame as decided
-                if number_of_frame % frame_distance == 0:
+                if number_of_frame % frame_distance == 0 :
                     for i in range(crops_per_frame):
                         crop_img = frame[random_crops[i][0]:random_crops[i][0] + crop_size, random_crops[i][1]:random_crops[i][1]+crop_size]
                         frames_triplets[frame_number].append(crop_img)
@@ -95,7 +95,7 @@ def extractFromStream(stream, file_name, output_folder, frame_spacing, crops_per
                 # check all extracted patches and save those with right flow
                 for i in range(crops_per_frame):
                     frames_triplet = (frames_triplets[0][i], frames_triplets[1][i], frames_triplets[2][i])
-                    isFlowGood = checkFlow(frames_triplet, 250, 4000)
+                    isFlowGood = checkFlow(frames_triplet, 300, 4000)
                     if isFlowGood:
                         number_example += 1
                         # cv.imshow('crop0', frames_triplet[0])
@@ -132,12 +132,12 @@ def extractFromImages(folder_name, output_folder, frame_spacing, crops_per_frame
     height, width = firstImg.shape[:2]
     return extractFromStream(imagesStream(file_names), folder_name.split("\\")[-2], output_folder, frame_spacing, crops_per_frame, fps, width, height, frame_distance)
 
-#extractFromVideo("drift.mp4", ".\\frames\\", 0.5, 15)
+#extractFromVideo("screensaver.mp4", ".\\frames\\", 0.1, 15, 1)
 
 def main():
-    number_example = 6000
-    frame_distance = 5
-    example_distance = 0.5
+    number_example = 76725
+    frame_distance = 1
+    example_distance = 0.3
     number_crop = 5
     for root, dirs, files in os.walk(".\\UCF-101"):
         for file in files:

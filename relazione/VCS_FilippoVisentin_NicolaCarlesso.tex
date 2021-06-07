@@ -44,7 +44,7 @@ Nicola Carlesso (1237782)}
 	
 	\section{Introduction}
 	Our work is related on the video frame interpolation problem. In particular we look at work in \cite{mainpaper}.\\
-	The video frame interpolation problem consists of recreate the frame between two input frames in a video. This problem allows either to obtain a higher quality video, in terms of frames per second, or a more defined slow motion, or a super slow motion.\\
+	The video frame interpolation problem consists of recreating the frame between two input frames in a video. This problem allows either to obtain a higher quality video, in terms of frames per second, or a more defined slow motion, or a super slow motion.\\
 	The main challenge of this problem is to get an output frame with defined images, because the network tends to give in output a blurred frame, and recreate a good frame in case of two input frames are quite different.\\
 	Our network has a decoder-encoder architecture, used mainly to recreate fake example from a dataset, as in our case study. The network doesn't create directly the interpolated frame, but gives in output an ad hoc couple of kernels for each input frame. As last step we apply the convolutional operation with output kernels and input frames to get the output frame. 
 	
@@ -60,11 +60,42 @@ Nicola Carlesso (1237782)}
 		\item all frames in triplet don't must be too much different. For example, in the case of in the middle of triplet a change of scene occurs. 
 	\end{itemize}
 	Therefore, we have setted a lower and an upper bound for the difference between frames in the triplet.\\
-	Another important hyper-parameter to create the database is the distance in frame between elements of the triplet. In this way we have examples that can show more os less movement, so we can test strength of the network.\\
+	The magnitude of motion is estimated by computing the histogram of the 2 frames, and comparing them by taking the norm of the difference vector. \\
+	Another important hyper-parameter used to create the database is the number of frames between elements of the triplet. In this way we have examples that can show more os less movement, so we can test strength of the network.\\
 	To create our dataset we use \href{https://www.crcv.ucf.edu/data/UCF101.php}{UCF-101} and the Python script\\ \texttt{dataset/create\_dataset-py}. We use a dataset with about 6000 examples.
 	%% iniziare avendo scritto circa 2 pagine
 	\section{Method} %% quasi 2 pagine
+	The structure of the CNN used is based on that of \cite{mainpaper} with some changes. At the core there is a sequence of encoding convolutional layers, separated by pooling layers, followed by a sequence of decoding layers with upscaling (bilinear). The upscaling reintroduces feature maps from the encoding layer, in order to facilitate the decoding. As output of the net we expect a couple of separable kernels for each pixel, used to combine pixels from the 2 input frames to obtain each new pixel of the interpolated frame. \\
+
 	\section{Experiment} %% quasi 2 pagine
+	In order to improve the performance of the network we explored many solutions, some of which not useful and some more interesting.\\
+	We added \textbf{normalization} to the input images with successive denormalization on output images, by calculating mean and variance, in order to obtain a better learning. That has proven ineffective, as images were already nearly normalized by their own. \\
+	We tried \textbf{dropout}, but without any noticeable difference in accuracy.\\
+	We tried to change \textbf{optimizer} but the best remains Adam.\\
+	An interesting improvement we introduced, is to simply remove a convolutional layer every 4, leaving the other 3. This way the time per epoch reduces by about 30\% and the network trains faster without the risk of under fitting. In fact the network is able to overfit (if given enough epochs) even large datasets.
+	
+	\subsection{Loss function}
+	The original loss is a simple \textbf{Mean Squared Error} between pixels of the predicted image and the real one. \\
+	To improve on that we tried to compare the feature maps given as output of one of the intermediate layers of the \textbf{vgg16} net. This is because a one one comparison of pixels focuses on really fine details and looses on the overall (local) appearance of the image. Vgg16 extracts features, focusing more on discriminative information (for classification) than e.g. noise. \\
+	We found that taking an early layer of the vgg16 net given a more interesting loss: at late layers the loss focuses on overall shapes, this way our net tries harder to match the shape instead of its position on the image. \\ \\
+	The Mean square error loss is blurry:\\
+	\includegraphics{mse_loss2}\\
+	Taking the vgg16 at a late layer makes our network choose between one of the 2 inputs: \\
+	\includegraphics{vgg16_relu4_4_loss2}\\
+	Taking it at a early layer gives some sort of trade off:\\
+	\includegraphics{vgg16_relu2_1_loss2}\\
+	Following the idea of using feature maps to create a loss function, we decided to try some handcrafted filters. \\
+	Using a \textbf{sobel} filter we try to focus on edges, so output images remain defined. Here we show also the feature maps obtained: \\
+	\includegraphics{map_sobel}\\ \\
+	\includegraphics{sobel}\\ \\
+	To avoid losing all the information on color, we modified the filter to also consider a bit the central pixel \textbf{color}: \\
+	\includegraphics{sobel_color_map}\\ \\
+	\includegraphics{sobel_color}\\ \\
+	We decided to use the last one at the end as the use of vgg16 makes the learning slower and also because it retains color information without loosing too much on definiteness.
+
+	\subsection{Image refining layers}
+	\subsection{Dvd Logo}
+	
 	\section{Conclusion}
 	
 	\bibliographystyle{unsrt}
