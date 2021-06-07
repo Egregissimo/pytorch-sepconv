@@ -1,0 +1,73 @@
+\documentclass[11pt, a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[italian, english]{babel}
+\usepackage[pages=some]{background}
+\usepackage{hyperref}
+
+\graphicspath{ {./img/} }
+\backgroundsetup{
+	firstpage = {true},
+	placement = {center},
+	position = current page.center,
+	contents = {\includegraphics[scale=0.07]{unipd}},
+	angle = {0},
+	opacity = {0.03}
+}
+\hypersetup{
+	colorlinks=true,      
+	urlcolor=blue,
+	linkcolor=black
+}
+
+\newcommand{\image}[3]{
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.9\textwidth]{#1}
+		\caption{#2.}
+		\label{#3}
+	\end{figure}
+}
+
+\title{Vision and Cognitive Services\\
+\large Video Frame Interpolation via Adaptive Separable Convolution}
+\author{Filippo Visentin (matricola)\\
+Nicola Carlesso (1237782)}
+\date{a.a. 2020/2021}
+
+\begin{document}
+	\maketitle
+	\newpage
+	
+	\tableofcontents
+	\newpage
+	
+	\section{Introduction}
+	Our work is related on the video frame interpolation problem. In particular we look at work in \cite{mainpaper}.\\
+	The video frame interpolation problem consists of recreate the frame between two input frames in a video. This problem allows either to obtain a higher quality video, in terms of frames per second, or a more defined slow motion, or a super slow motion.\\
+	The main challenge of this problem is to get an output frame with defined images, because the network tends to give in output a blurred frame, and recreate a good frame in case of two input frames are quite different.\\
+	Our network has a decoder-encoder architecture, used mainly to recreate fake example from a dataset, as in our case study. The network doesn't create directly the interpolated frame, but gives in output an ad hoc couple of kernels for each input frame. As last step we apply the convolutional operation with output kernels and input frames to get the output frame. 
+	
+	\section{Related work}
+	Other approaches to resolve this problem are with the optical flow technique \cite{optical_flow}, where the network learns the movements of figures in the frame and predicts those immediately following. This technique requires two steps: first estimate optical flow between input frames and then synthesize an intermediate frame guided by motion; our approach has instead a single convolution process.\\
+	The work we rely on is a continuation of another work in \cite{previous_work} that use our same network structure with one, mainly difference: in our network we obtain two kernels for each input frame, a column vector and a row vector, in \cite{optical_flow} the network gives one standard kernel (a square matrix) for each input frame. The first improvement with the network of \cite{mainpaper} is the memory and the time, because the network gives only a column and a row vector, instead of a matrix, in fact the usage of memory went from 26GB and 1.27GB. Another improvement is the sharpness and quality of output frames.
+	
+	\section{Dataset}
+	Fortunately, for the video frame interpolation problem its easy to create a large dataset, without looking online.\\
+	We just have to take a video and extract a triplet of close frames. The input are the first and last frame of triplet, and the label is the second frame. Its important consider two factors:
+	\begin{itemize}
+		\item all frames in triplet must be enough different, otherwise the example will be useless for the learning phase;
+		\item all frames in triplet don't must be too much different. For example, in the case of in the middle of triplet a change of scene occurs. 
+	\end{itemize}
+	Therefore, we have setted a lower and an upper bound for the difference between frames in the triplet.\\
+	Another important hyper-parameter to create the database is the distance in frame between elements of the triplet. In this way we have examples that can show more os less movement, so we can test strength of the network.\\
+	To create our dataset we use \href{https://www.crcv.ucf.edu/data/UCF101.php}{UCF-101} and the Python script\\ \texttt{dataset/create\_dataset-py}. We use a dataset with about 6000 examples.
+	%% iniziare avendo scritto circa 2 pagine
+	\section{Method} %% quasi 2 pagine
+	\section{Experiment} %% quasi 2 pagine
+	\section{Conclusion}
+	
+	\bibliographystyle{unsrt}
+	\bibliography{bibliography}
+	
+\end{document}
