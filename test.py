@@ -20,12 +20,12 @@ parser.add_argument('--batch_size', type=int, default=32)
 
 
 def main():
-    db_dir = parser.database
     args = parser.parse_args()
-    output_dir = parser.output
+    db_dir = args.database
+    output_dir = args.output
     ckpt = args.checkpoint
-    train_test_ratio = parser.train_test_ratio
-    batch_size = parser.batch_size
+    train_test_ratio = args.train_test_ratio
+    batch_size = args.batch_size
 
     print("Loading the Model...")
     checkpoint = torch.load(ckpt)

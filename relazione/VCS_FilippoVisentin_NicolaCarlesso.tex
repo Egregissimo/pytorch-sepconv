@@ -4,6 +4,8 @@
 \usepackage[italian, english]{babel}
 \usepackage[pages=some]{background}
 \usepackage{hyperref}
+\usepackage{float}
+\usepackage{amsmath}
 
 \graphicspath{ {./img/} }
 \backgroundsetup{
@@ -21,7 +23,7 @@
 }
 
 \newcommand{\image}[3]{
-	\begin{figure}[H]
+	\begin{figure}%[H]
 		\centering
 		\includegraphics[width=0.9\textwidth]{#1}
 		\caption{#2.}
@@ -50,7 +52,8 @@ Nicola Carlesso (1237782)}
 	
 	\section{Related work}
 	Other approaches to resolve this problem are with the optical flow technique \cite{optical_flow}, where the network learns the movements of figures in the frame and predicts those immediately following. This technique requires two steps: first estimate optical flow between input frames and then synthesize an intermediate frame guided by motion; our approach has instead a single convolution process.\\
-	The work we rely on is a continuation of another work in \cite{previous_work} that use our same network structure with one, mainly difference: in our network we obtain two kernels for each input frame, a column vector and a row vector, in \cite{optical_flow} the network gives one standard kernel (a square matrix) for each input frame. The first improvement with the network of \cite{mainpaper} is the memory and the time, because the network gives only a column and a row vector, instead of a matrix, in fact the usage of memory went from 26GB and 1.27GB. Another improvement is the sharpness and quality of output frames.
+	The work we rely on is a continuation of another work in \cite{previous_work} that use our same network structure with one, mainly difference: in our network we obtain two kernels for each input frame, a column vector and a row vector, in \cite{optical_flow} the network gives one standard kernel (a square matrix) for each input frame. The first improvement with the network of \cite{mainpaper} is the memory and the time, because the network gives only a column and a row vector, instead of a matrix, in fact the usage of memory went from 26GB and 1.27GB.  In this way,	an $n\times n$ convolution kernel can be encoded using only $2n$ variables.\\
+	Another improvement is the sharpness and quality of output frames.
 	
 	\section{Dataset}
 	Fortunately, for the video frame interpolation problem its easy to create a large dataset, without looking online.\\
@@ -65,7 +68,16 @@ Nicola Carlesso (1237782)}
 	To create our dataset we use \href{https://www.crcv.ucf.edu/data/UCF101.php}{UCF-101} and the Python script\\ \texttt{dataset/create\_dataset-py}. We use a dataset with about 6000 examples.
 	%% iniziare avendo scritto circa 2 pagine
 	\section{Method} %% quasi 2 pagine
-	The structure of the CNN used is based on that of \cite{mainpaper} with some changes. At the core there is a sequence of encoding convolutional layers, separated by pooling layers, followed by a sequence of decoding layers with upscaling (bilinear). The upscaling reintroduces feature maps from the encoding layer, in order to facilitate the decoding. As output of the net we expect a couple of separable kernels for each pixel, used to combine pixels from the 2 input frames to obtain each new pixel of the interpolated frame. \\
+	The structure of the CNN used is based on that of \cite{mainpaper}, showed in Figure~\ref{original-net}, with some changes. At the core there is a sequence of encoding convolutional layers, separated by pooling layers, followed by a sequence of decoding layers with upscaling (bilinear). The upscaling reintroduces feature maps from the encoding layer, in order to facilitate the decoding. As output of the net we expect a couple of separable kernels for each pixel, used to combine pixels from the 2 input frames to obtain each new pixel of the interpolated frame. \\
+	In the network use used the skip connection technique to let the expanding	layers incorporate features from the contracting part of the neural network.\\
+	If we call $I_1$ and $I_2$ two input frames and $\hat{I}$ the interpolated frame, to compute each output pixel $(x,y)$, the final stage applies at each input frame a convolutional operation between every output kernel and patches centred in $(x,y)$.\\
+	As we ca see in Figure~\ref{original-net}, if we consider inputs like a matrix $128\times128$ and we set the size of separable kernels as $51\times1$, the output of network are four matrices $51\times128\times128$: $k_{1,h}$, $k_{1,v}$, $k_{2,h}$, $k_{2,v}$. We consider $k_{n,s}(x,y)$ as a vector $51\times1$, and we call $K_n(x,y) = k_{n,h}(x,y) * k_{n,v}(x,y)$, a matrix $51\times51$, and the input patch centred in $(x,y)$ of frame \textit{n} $P_n(x,y)$, always a matrix $51\times51$.
+	
+	\begin{equation}
+		\hat{I}(x,y) = Conv(K_1(x,y), P_1(x,y)) + Conv(K_2(x,y), P_2(x,y))
+	\end{equation}
+	
+	\image{net_structure}{Structure of original convolutional network}{original-net}
 
 	\section{Experiment} %% quasi 2 pagine
 	In order to improve the performance of the network we explored many solutions, some of which not useful and some more interesting.\\
@@ -76,22 +88,26 @@ Nicola Carlesso (1237782)}
 	
 	\subsection{Loss function}
 	The original loss is a simple \textbf{Mean Squared Error} between pixels of the predicted image and the real one. \\
-	To improve on that we tried to compare the feature maps given as output of one of the intermediate layers of the \textbf{vgg16} net. This is because a one one comparison of pixels focuses on really fine details and looses on the overall (local) appearance of the image. Vgg16 extracts features, focusing more on discriminative information (for classification) than e.g. noise. \\
-	We found that taking an early layer of the vgg16 net given a more interesting loss: at late layers the loss focuses on overall shapes, this way our net tries harder to match the shape instead of its position on the image. \\ \\
-	The Mean square error loss is blurry:\\
-	\includegraphics{mse_loss2}\\
-	Taking the vgg16 at a late layer makes our network choose between one of the 2 inputs: \\
-	\includegraphics{vgg16_relu4_4_loss2}\\
-	Taking it at a early layer gives some sort of trade off:\\
-	\includegraphics{vgg16_relu2_1_loss2}\\
-	Following the idea of using feature maps to create a loss function, we decided to try some handcrafted filters. \\
-	Using a \textbf{sobel} filter we try to focus on edges, so output images remain defined. Here we show also the feature maps obtained: \\
-	\includegraphics{map_sobel}\\ \\
-	\includegraphics{sobel}\\ \\
-	To avoid losing all the information on color, we modified the filter to also consider a bit the central pixel \textbf{color}: \\
-	\includegraphics{sobel_color_map}\\ \\
-	\includegraphics{sobel_color}\\ \\
-	We decided to use the last one at the end as the use of vgg16 makes the learning slower and also because it retains color information without loosing too much on definiteness.
+	To improve on that we tried to compare the feature maps given as output of one of the intermediate layers of the \textbf{VGG-19} net. This is because a one one comparison of pixels focuses on really fine details and looses on the overall (local) appearance of the image. VGG-19 extracts features, focusing more on discriminative information (for classification) than e.g. noise. \\
+	We found that taking an early layer of the VGG-19 net given a more interesting loss: at late layers the loss focuses on overall shapes, this way our net tries harder to match the shape instead of its position on the image. 
+	\image{mse_loss2}{The Mean square error loss is blurry}{loss-mse}
+	\image{vgg16_relu4_4_loss2}{Taking the VGG-19 at a late layer makes our network choose between one of the 2 inputs}{loss-vgg19-44}
+	\image{vgg16_relu2_1_loss2}{Taking it at a early layer gives some sort of trade off}{loss-vgg19-21}
+	
+	Following the idea of using feature maps to create a loss function, we decided to try some handcrafted filters.
+	\begin{figure}
+		\includegraphics[width=.5\textwidth]{map_sobel}
+		\includegraphics[width=.3\textheight]{sobel}
+		\caption{Using a \textbf{sobel} filter we try to focus on edges, so output images remain defined. Here we show also the feature maps obtained}
+		\label{feature-map}
+	\end{figure}
+	\begin{figure}
+		\includegraphics[width=0.3\textheight]{sobel_color_map}
+		\includegraphics[width=0.3\textheight]{sobel_color}
+		\caption{To avoid losing all the information on color, we modified the filter to also consider a bit the central pixel \textbf{color}}
+		\label{color-feature-map}
+	\end{figure}
+	We decided to use the last one at the end as the use of VGG-19 makes the learning slower and also because it retains color information without loosing too much on definiteness.
 
 	\subsection{Image refining layers}
 	\subsection{Dvd Logo}
