@@ -1,3 +1,12 @@
 - provare diverse loss functions
 - provare diversi upsampling (Bilinear, Best neighborhood)
 - provare il dropout
+
+- provare la nostra rete con le diverse loss (MSE, vgg19 x 2, fixedkernel).
+    Per ognuna di esse usare i seguenti parametri:
+    - dataset di 50.000 esempi, 1 frame di distanza
+    - batch_size di 32
+    - epochs 10-15
+    - optim Adam
+    - provare con diversi lr (0.001, 0.0005)
+- con gli stessi parametri, eseguire la rete orginale (MSE, vgg19 relu4_4)
