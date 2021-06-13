@@ -124,6 +124,7 @@ def train(dataset, model, iterator, optimizer, criterion, device):
 def evaluate(dataset, model, iterator, criterion, device, test=False, output_dir=None):
     epoch_loss = 0
     epoch_psnr = 0
+    output_images = []
 
     # Evaluation mode
     model.eval()
@@ -142,6 +143,7 @@ def evaluate(dataset, model, iterator, criterion, device, test=False, output_dir
             
             # Make Predictions
             y_pred = model(x0, x1)
+            output_images.append(y_pred.cpu().detach().numpy())
 
             # denormalize the image to get the correct loss and psnr
             #denormalize = transforms.Normalize((-1 * dataset.mean / dataset.std), (1.0 / dataset.std))
@@ -165,7 +167,7 @@ def evaluate(dataset, model, iterator, criterion, device, test=False, output_dir
                     images = [x0[j], y[j], x1[j], blank_image, y_pred[j], blank_image]
                     imwrite(images, f'{output_dir}/batch_{str(idx).zfill(3)}_batchItem_{str(j).zfill(3)}_example.png', nrow=3)
 
-    return epoch_loss/len(iterator), epoch_psnr/len(iterator)
+    return np.array([item for sublist in output_images for item in sublist]), epoch_loss/len(iterator), epoch_psnr/len(iterator)
 
 def plot_results(n_epochs, train_losses, train_psnrs, valid_losses, valid_psnrs, output_dir):
     N_EPOCHS = n_epochs

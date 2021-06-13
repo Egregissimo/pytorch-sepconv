@@ -2,7 +2,7 @@
 .vs/**
 *.mp4
 *.avi
-dataset/**
+!example.mp4
 !create_dataset.py
 *.png
 *.jpg
