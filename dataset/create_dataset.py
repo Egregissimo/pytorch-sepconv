@@ -95,7 +95,7 @@ def extractFromStream(stream, file_name, output_folder, frame_spacing, crops_per
                 # check all extracted patches and save those with right flow
                 for i in range(crops_per_frame):
                     frames_triplet = (frames_triplets[0][i], frames_triplets[1][i], frames_triplets[2][i])
-                    isFlowGood = checkFlow(frames_triplet, 300, 4000)
+                    isFlowGood = checkFlow(frames_triplet, 300, 3000)
                     if isFlowGood:
                         number_example += 1
                         # cv.imshow('crop0', frames_triplet[0])
@@ -132,24 +132,24 @@ def extractFromImages(folder_name, output_folder, frame_spacing, crops_per_frame
     height, width = firstImg.shape[:2]
     return extractFromStream(imagesStream(file_names), folder_name.split("\\")[-2], output_folder, frame_spacing, crops_per_frame, fps, width, height, frame_distance)
 
-#extractFromVideo("screensaver.mp4", ".\\frames\\", 0.1, 15, 1)
+extractFromVideo("nature.mp4", ".\\frames\\", 0.1, 15, 5)
 
-def main():
-    number_example = 76725
-    frame_distance = 1
-    example_distance = 0.3
-    number_crop = 5
-    for root, dirs, files in os.walk(".\\UCF-101"):
-        for file in files:
-            if file.endswith(".avi"):
-                print("processing: " + file)
-                number_example -= extractFromVideo(os.path.join(root, file), ".\\frames\\", example_distance, number_crop, frame_distance)
-            print('Example remaining: ', number_example)
-            if number_example < 0: break
-        if number_example < 0: break
-
-if __name__ == "__main__":
-    main()
+#def main():
+#    number_example = 76725
+#    frame_distance = 1
+#    example_distance = 0.3
+#    number_crop = 5
+#    for root, dirs, files in os.walk(".\\UCF-101"):
+#        for file in files:
+#            if file.endswith(".avi"):
+#                print("processing: " + file)
+#                number_example -= extractFromVideo(os.path.join(root, file), ".\\frames\\", example_distance, number_crop, frame_distance)
+#            print('Example remaining: ', number_example)
+#            if number_example < 0: break
+#        if number_example < 0: break
+#
+#if __name__ == "__main__":
+#    main()
 
 #imageFolders = glob(".\\input_images\\annotations\\*\\")
 #for imagesFolder in imageFolders:

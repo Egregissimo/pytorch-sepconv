@@ -1,0 +1,14 @@
+{
+    "FELoss_Adam_32_51_1": {
+        "batch_size": 32,
+        "criterion": "FELoss",
+        "kernel_size": 51,
+        "number_parameters": 15397464,
+        "optimizer": "Adam",
+        "test_results": {
+            "test_loss": 0.0059325566758538124,
+            "test_psnr": 70.58546071560619
+        },
+        "total_epoche": 1
+    }
+}

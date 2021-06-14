@@ -22,8 +22,11 @@ class FELoss (torch.nn.Module):
         self.vgg.to(device)
 
         # Uso solo una parte della rete VGG-19. Fino al layer relu4_4
-        self.vgg.features = self.vgg.features[:9]
-        self.vgg.classifier = self.vgg.features[8]
+        #self.vgg.features = self.vgg.features[:9]
+        #self.vgg.classifier = self.vgg.features[8]
+        #self.vgg.features = self.vgg.features[:-1]
+        self.vgg.features = self.vgg.features[:18]
+        self.vgg.classifier = self.vgg.features[17]
         self.vgg.features = self.vgg.features[:-1]
 
     # La funzione implementa automaticamente la backpropagation, dato che lavora con i Tensor
@@ -200,3 +203,16 @@ def plot_feature_map(y_pred, y, nameFigure, width):
         os.makedirs('output/fixedKernelFeatureMap')
     plt.savefig(f'output/fixedKernelFeatureMap/{nameFigure}.png')
     #plt.show()
+
+# applico il kernel imparato in un certo layer ad una immagine
+def plot_layer_kernel(layer, image):
+    shape = layer.weight.data.shape
+    transformed_img = layer.cpu()(image)
+
+    for i in range(transformed_img.shape[0]):
+        f, (ax1, ax2) = plt.subplots(1, 2)
+        ax1.imshow(image.detach().numpy()[i][0])
+        ax2.imshow(transformed_img.detach().numpy()[i][0])
+        plt.show()
+    # for each layer 
+    print()

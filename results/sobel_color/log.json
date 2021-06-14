@@ -1,0 +1,14 @@
+{
+    "FixedKernelLoss_Adam_32_51_1": {
+        "batch_size": 32,
+        "criterion": "FixedKernelLoss",
+        "kernel_size": 51,
+        "number_parameters": 15397464,
+        "optimizer": "Adam",
+        "test_results": {
+            "test_loss": 0.017694337557479265,
+            "test_psnr": 70.87867645884639
+        },
+        "total_epoche": 1
+    }
+}

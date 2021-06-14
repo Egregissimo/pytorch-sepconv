@@ -3,22 +3,23 @@ from torch.nn import MSELoss
 from torch.utils.data import DataLoader, random_split
 import torch.optim as optim
 from model import SepConvNet
-from TrainTestUtil import FixedKernelLoss, train, evaluate, plot_results, FELoss
+from TrainTestUtil import FixedKernelLoss, plot_layer_kernel, train, evaluate, plot_results, FELoss
 import time
 import argparse
 import torch
 import os
 import json
+import cv2 as cv
 
 parser = argparse.ArgumentParser(description='SepConv Pytorch')
 
 # parameters
-parser.add_argument('--database', type=str, default='./dataset/101-150000')
+parser.add_argument('--database', type=str, default='./dataset/101-50000')
 parser.add_argument('--kernel', type=int, default=51)
 parser.add_argument('--out_dir', type=str, default='./output')
-parser.add_argument('--epochs', type=int, default=20)
+parser.add_argument('--epochs', type=int, default=12)
 parser.add_argument('--batch_size', type=int, default=32)
-parser.add_argument('--load_model', type=str, default='output/checkpoint/101-150000_pretrained_8+6epoch.pth')
+parser.add_argument('--load_model', type=str, default=None)#'output/checkpoint/vgg16_relu2_1.pth')
 parser.add_argument('--train_test_ratio', type=float, default=0.8)
 parser.add_argument('--train_validation_ratio', type=float, default=0.8)
 parser.add_argument('--no-test', action='store_false', dest='test', default=True)
@@ -86,10 +87,13 @@ def main():
     print(f'The model has {count_parameters(model)} parameters.')
     model = model.to(device)
 
+    # test learned kernels
+    #plot_layer_kernel(model.imageTune.model[0], next(iter(test_iterator))[0])
+
     # Loss
-    # criterion = MSELoss()
-    criterion = FELoss()
-    criterion = FixedKernelLoss()
+    criterion = MSELoss()
+    #criterion = FELoss()
+    #criterion = FixedKernelLoss()
     #criterion = criterion.to(device)
 
     #Optimizer
