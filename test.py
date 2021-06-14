@@ -13,8 +13,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # parameters
 parser.add_argument('--database', type=str, default='./dataset/frames')
-parser.add_argument('--output', type=str, default='./output_sepconv_pytorch_0/result')
-parser.add_argument('--checkpoint', type=str, default='./output_sepconv_pytorch_0/checkpoint/model_epoch010.pth')
+parser.add_argument('--output', type=str, default='./output/test_result')
+parser.add_argument('--checkpoint', type=str, default='./output/checkpoint/model_epoch010.pth')
 parser.add_argument('--train_test_ratio', type=float, default=0.8)
 parser.add_argument('--batch_size', type=int, default=32)
 
@@ -32,7 +32,7 @@ def main():
     kernel_size = checkpoint['kernel_size']
     model = SepConvNet(kernel_size=kernel_size)
     state_dict = checkpoint['state_dict']
-    model.load_state_dict(torch.load(state_dict))
+    model.load_state_dict(state_dict)
     model.epoch = checkpoint['epoch']
 
     print("Loading Datatest")
@@ -47,7 +47,7 @@ def main():
     criterion = MSELoss()
     criterion = criterion.to(device)
     model.eval()
-    test_loss, test_psnr = evaluate(model, test_iterator, criterion, device, test= True, output_dir= output_dir)
+    _, test_loss, test_psnr = evaluate(model, test_iterator, criterion, device, test= True, output_dir= output_dir)
 
     print(f"Test -- Loss: {test_loss:.3f}, PSNR: {test_psnr:.3f}")
 

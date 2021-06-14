@@ -94,7 +94,7 @@ def main():
     criterion = MSELoss()
     #criterion = FELoss()
     #criterion = FixedKernelLoss()
-    #criterion = criterion.to(device)
+    criterion = criterion.to(device)
 
     #Optimizer
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
@@ -130,7 +130,8 @@ def main():
         # device: GPU
         train_loss, train_psnr = train(dataset, model, train_iterator, optimizer, criterion, device)
         # Validation
-        valid_loss, valid_psnr = evaluate(dataset, model, validation_iterator, criterion, device)
+        images, valid_loss, valid_psnr = evaluate(dataset, model, validation_iterator, criterion, device)
+        print(images.shape)
         # Save best model
         if valid_loss < best_valid_loss:
             best_valid_loss = valid_loss
@@ -164,7 +165,7 @@ def main():
 
     if test:
         print('\nStart testing.')
-        test_loss, test_psnr = evaluate(dataset, model, test_iterator, criterion, device, test= test, output_dir= result_dir)
+        _, test_loss, test_psnr = evaluate(dataset, model, test_iterator, criterion, device, test= test, output_dir= result_dir)
         print(f"Test -- Loss: {test_loss:.3f}, PSNR: {test_psnr:.3f}dB")
         data['test_results'] = {}
         data['test_results']['test_loss'] = test_loss
