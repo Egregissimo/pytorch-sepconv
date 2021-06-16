@@ -14,14 +14,14 @@ import cv2 as cv
 parser = argparse.ArgumentParser(description='SepConv Pytorch')
 
 # parameters
-parser.add_argument('--database', type=str, default='./dataset/101-50000')
+parser.add_argument('--database', type=str, default='./dataset/frames')
 parser.add_argument('--kernel', type=int, default=51)
-parser.add_argument('--out_dir', type=str, default='./output')
-parser.add_argument('--epochs', type=int, default=12)
-parser.add_argument('--batch_size', type=int, default=32)
-parser.add_argument('--load_model', type=str, default=None)#'output/checkpoint/vgg16_relu2_1.pth')
-parser.add_argument('--train_test_ratio', type=float, default=0.8)
-parser.add_argument('--train_validation_ratio', type=float, default=0.8)
+parser.add_argument('--out-dir', type=str, default='./output')
+parser.add_argument('--epochs', type=int, default=20)
+parser.add_argument('--batch-size', type=int, default=32)
+parser.add_argument('--load_model', type=str, default=None)
+parser.add_argument('--train-test-ratio', type=float, default=0.8)
+parser.add_argument('--train-validation-ratio', type=float, default=0.8)
 parser.add_argument('--no-test', action='store_false', dest='test', default=True)
 parser.add_argument('--learning-rate', type=float, default=0.001)
 parser.add_argument('--recalculate-stats', action='store_true', default=False) # calculate mean and std from dataset
@@ -128,10 +128,9 @@ def main():
         # opimizer: Adam
         # criterion: MSE
         # device: GPU
-        train_loss, train_psnr = train(dataset, model, train_iterator, optimizer, criterion, device)
+        train_loss, train_psnr = train(dataset, model, train_iterator, optimizer, criterion)
         # Validation
-        images, valid_loss, valid_psnr = evaluate(dataset, model, validation_iterator, criterion, device)
-        print(images.shape)
+        _, valid_loss, valid_psnr = evaluate(dataset, model, validation_iterator, criterion)
         # Save best model
         if valid_loss < best_valid_loss:
             best_valid_loss = valid_loss
@@ -165,7 +164,7 @@ def main():
 
     if test:
         print('\nStart testing.')
-        _, test_loss, test_psnr = evaluate(dataset, model, test_iterator, criterion, device, test= test, output_dir= result_dir)
+        _, test_loss, test_psnr = evaluate(dataset, model, test_iterator, criterion, test= test, output_dir= result_dir)
         print(f"Test -- Loss: {test_loss:.3f}, PSNR: {test_psnr:.3f}dB")
         data['test_results'] = {}
         data['test_results']['test_loss'] = test_loss

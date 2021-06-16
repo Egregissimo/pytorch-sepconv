@@ -8,7 +8,7 @@ from shutil import rmtree
 from torchvision.utils import save_image as imwrite
 from torchvision import transforms
 from torchvision.models import vgg19
-import cv2 as cv
+import cv2
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -79,7 +79,7 @@ class FixedKernelLoss (torch.nn.Module):
         self.i += 1
         return MSELoss()(y_pred, y)
 
-def train(dataset, model, iterator, optimizer, criterion, device):
+def train(dataset, model, iterator, optimizer, criterion):
     epoch_loss = 0
     # Compute Peak-signal-to-noise ratio
     epoch_psnr = 0
@@ -124,7 +124,7 @@ def train(dataset, model, iterator, optimizer, criterion, device):
 
     return epoch_loss/len(iterator), epoch_psnr/len(iterator)
 
-def evaluate(dataset, model, iterator, criterion, device, test=False, output_dir=None):
+def evaluate(dataset, model, iterator, criterion, test=False, output_dir=None):
     epoch_loss = 0
     epoch_psnr = 0
     output_images = []
@@ -135,8 +135,9 @@ def evaluate(dataset, model, iterator, criterion, device, test=False, output_dir
     # Do not compute gradients
     with torch.no_grad():
 
-        if test and os.path.exists(output_dir):
-            rmtree(output_dir, ignore_errors = False)
+        if test:
+            if os.path.exists(output_dir):
+                rmtree(output_dir, ignore_errors = False)
             os.makedirs(output_dir)
 
         for idx, (x0, y, x1) in enumerate(iterator):
@@ -146,7 +147,7 @@ def evaluate(dataset, model, iterator, criterion, device, test=False, output_dir
             
             # Make Predictions
             y_pred = model(x0, x1)
-            output_images.append(y_pred.cpu().detach().numpy())
+            output_images.append(y_pred)
 
             # denormalize the image to get the correct loss and psnr
             #denormalize = transforms.Normalize((-1 * dataset.mean / dataset.std), (1.0 / dataset.std))
@@ -170,7 +171,7 @@ def evaluate(dataset, model, iterator, criterion, device, test=False, output_dir
                     images = [x0[j], y[j], x1[j], blank_image, y_pred[j], blank_image]
                     imwrite(images, f'{output_dir}/batch_{str(idx).zfill(3)}_batchItem_{str(j).zfill(3)}_example.png', nrow=3)
 
-    return np.array([item for sublist in output_images for item in sublist]), epoch_loss/len(iterator), epoch_psnr/len(iterator)
+    return np.array(output_images), epoch_loss/len(iterator), epoch_psnr/len(iterator)
 
 def plot_results(n_epochs, train_losses, train_psnrs, valid_losses, valid_psnrs, output_dir):
     N_EPOCHS = n_epochs

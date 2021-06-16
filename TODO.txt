@@ -10,3 +10,11 @@
     - optim Adam
     - provare con diversi lr (0.001, 0.0005)
 - con gli stessi parametri, eseguire la rete orginale (MSE, vgg19 relu4_4)
+
+- più esempi ho, più le immagini vengono sfuocate (forse perché la rete generalizza di più le azioni)
+- probabilmente è anche lo sfondo nero che rende le immagini più definite
+
+PRESENTAZIONE:
+Filippo: le altre loss function, confronto con la vecchia rete, le diverse loss a confronto, il dvd, la varie applicazioni future, il dataset piccolo che funziona meglio
+Nicola: il problema, le opzioni alternative (optical flow), il metodo, una loss function
+
