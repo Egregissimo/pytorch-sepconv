@@ -3,6 +3,7 @@
 *.mp4
 *.avi
 !example.mp4
+!example480.mp4
 !create_dataset.py
 *.png
 *.jpg
