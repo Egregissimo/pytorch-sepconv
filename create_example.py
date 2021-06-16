@@ -1,6 +1,5 @@
 import argparse
 from torch.nn import MSELoss
-from torch.utils import data
 from torch.utils.data import DataLoader
 import torch
 from model import SepConvNet
@@ -12,7 +11,6 @@ import cv2
 import os
 from shutil import rmtree
 import numpy as np
-from itertools import product
 
 def create_frames(stream, input_dir):
     images = []
@@ -25,7 +23,7 @@ def create_frames(stream, input_dir):
 
     images = images[:len(images) - len(images) % 3]
     for idx, image in enumerate(images):
-        cv2.imwrite(input_dir + f'/example_frame_{idx}.jpg', image)
+        cv2.imwrite(input_dir + f'/example_frame_{str(idx).zfill(5)}.jpg', image)
     return np.array(images)
 
 def getFakeImages(image_dir, len_dataset, size_image):
@@ -89,7 +87,7 @@ def main():
     print("Loading Datatest...")
     # il video deve essere grande almeno quanto 'size' a 30 fps
     # n_output x size x size x 3
-    dataset_images = create_frames(cv2.VideoCapture(os.path.join(example_dir, 'example.mp4')), input_dir)
+    dataset_images = create_frames(cv2.VideoCapture(os.path.join(example_dir, 'example480.mp4')), input_dir)
     dataset = DBreader_frame_interpolation(input_dir)
     test_iterator = DataLoader(dataset=dataset, batch_size=batch_size)
 
