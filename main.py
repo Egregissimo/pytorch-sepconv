@@ -14,11 +14,11 @@ import cv2 as cv
 parser = argparse.ArgumentParser(description='SepConv Pytorch')
 
 # parameters
-parser.add_argument('--database', type=str, default='./dataset/frames')
+parser.add_argument('--database', type=str, default='./dataset/101-50000')
 parser.add_argument('--kernel', type=int, default=51)
 parser.add_argument('--out-dir', type=str, default='./output')
-parser.add_argument('--epochs', type=int, default=20)
-parser.add_argument('--batch-size', type=int, default=32)
+parser.add_argument('--epochs', type=int, default=5)
+parser.add_argument('--batch-size', type=int, default=8)
 parser.add_argument('--load_model', type=str, default=None)
 parser.add_argument('--train-test-ratio', type=float, default=0.8)
 parser.add_argument('--train-validation-ratio', type=float, default=0.8)

@@ -41,11 +41,11 @@ Nicola Carlesso (1237782)}
 	\section{Introduction}
 	Our work is related on the video frame interpolation problem. In particular we look at work in \cite{mainpaper}; when we talk about ``our network'', we refer to a modified version of the network in \cite{mainpaper}.\\
 	The video frame interpolation problem consists of recreating the frame between two input frames in a video. This problem allows either to obtain a higher quality video, in terms of frames per second, a more defined slow motion, or a super slow motion.\\
-	The main challenge of this problem is to get an output frame with defined shapes, because the network tends to give in output a blurred frame, and recreate a good frame in case of the two input frames are quite different.\\
-	Our network has a decoder-encoder architecture, used mainly to recreate fake example from a dataset, as in our case study. The network doesn't create directly the interpolated frame, but gives in output an ad hoc couple of kernels (separable kernels) for each input frame. As last step we apply the convolutional operation with output kernels and input frames to get the output frame. 
+	The main challenge of this problem is to get an output frame with defined shapes, because the network tends to give in output a blurred frame, and recreate a good frame in case the two input frames are quite different.\\
+	Our network has a decoder-encoder architecture, used mainly to recreate fake examples from a dataset, as in our case study. The network doesn't create directly the interpolated frame, but gives in output an ad hoc couple of kernels (separable kernels) for each input frame. As last step we apply the convolutional operation with output kernels and input frames to get the output frame. 
 	
 	\section{Related work}
-	Other approaches to resolve this problem are with the optical flow technique \cite{optical_flow}, where the network learns movements of figures in the frame and predicts those immediately following. This technique requires two main steps: first estimate optical flow between input frames and then synthesize an intermediate frame guided by motion; our approach requires instead a single convolution process.\\
+	Other approaches to solve this problem use the optical flow technique \cite{optical_flow}, where the network learns movements of figures in the frame and predicts those immediately following. This technique requires two main steps: first estimate optical flow between input frames and then synthesize an intermediate frame guided by motion; our approach requires instead a single convolution.\\
 	The work we rely on is a continuation of another work in \cite{previous_work} that use our same network structure with one, mainly difference: in our network we obtain two separable kernels for each input frame, a column and a row vector, in \cite{previous_work} the network gives in output one ``standard'' kernel (a square matrix) for each input frame. This difference gives a big improvement in terms of memory and computational time, in fact the usage of memory went from 26GB to 1.27GB.  In this way, an $n \times n$ convolution kernel can be encoded using only $2n$ variables.\\
 	Another improvement is the sharpness and quality of output frames.
 	
@@ -57,11 +57,11 @@ Nicola Carlesso (1237782)}
 		\item all frames in triplet don't must be too much different. For example, in the case of in the middle of triplet a change of scene occurs. 
 	\end{itemize}
 	Therefore, we analysed the difference of image histograms of triplet's frames to have the magnitude of motion and then we compared them by taking the norm of the difference vector, setting lower and upper bound.\\
-	Another important hyper-parameter used to create the database is the number of frames between elements of the triplet. In this way we have examples that can show more os less movement, to test the strength of network.	To create our dataset we use \href{https://www.crcv.ucf.edu/data/UCF101.php}{UCF-101}.\\
-	With all videos in UCF-101, we can get about 500'000 examples. Unfortunately, already with 150'000 examples and a \textit{batch size} of 32 examples, an epoch requires about 4 hour of time, so we used for our experiments a dataset of 50'000 examples (we note that using 50'000 or 75'000 examples, the results doesn't change too much).
+	Another important hyper-parameter used to create the database is the number of frames between elements of the triplet. In this way we have examples that can show more os less movement, to test the strength of network. To create our dataset we use \href{https://www.crcv.ucf.edu/data/UCF101.php}{UCF-101}.\\
+	With all videos in UCF-101, we can get about 500'000 examples. Unfortunately, already with 150'000 examples and a \textit{batch size} of 32 examples, an epoch requires about 1000 seconds of time, so we used for our experiments a dataset of 50'000 examples (we note that using 50'000 or 75'000 examples, the results don't change too much).
 	 
 	\section{Method}
-	Our structure of CNN is based on that of \cite{mainpaper}, showed in Figure~\ref{original-net}, with some changes. At the core there is a encoding phase with 6 steps of 3-stack of convolutional layers, separated by average pooling layers. The decoding phase is the reverse of previous, with a bilinear upscaling. The upscaling reintroduces feature maps from the encoding layer, in order to facilitate the decoding. As output of the network we expect a couple of separable kernels for each pixel, used to combine pixels from the two input frames to obtain each new pixel of the interpolated frame. Is used the skip connection technique to let the expanding layers incorporate features from the contracting part of the neural network.\\
+	Our structure of CNN is based on that of \cite{mainpaper}, showed in Figure~\ref{original-net}, with some changes. At the core there is a encoding phase with 6 steps of 3-stack of convolutional layers, separated by average pooling layers. The decoding phase is the reverse of previous, with a bilinear upscaling. The upscaling reintroduces feature maps from the encoding layer, in order to facilitate the decoding. As output of the network we expect a couple of separable kernels for each pixel, used to combine pixels from the two input frames to obtain each new pixel of the interpolated frame. The skip connection technique is used, to let the expanding layers incorporate features from the contracting part of the neural network.\\
 	We call $I_1$ and $I_2$ two input frames and $\hat{I}$ the interpolated frame to compute each output pixel $(x,y)$. In the final stage applies at each input frame a convolutional operation between every output kernel and patches centred in $(x,y)$.\\
 	As we ca see in Figure~\ref{original-net}, if we consider inputs like a matrix $128\times128$ and we set the size of separable kernels as $51\times1$, the output of network (with batch size of 1) are four matrices $128\times128\times51$: $k_{1,h}$, $k_{1,v}$, $k_{2,h}$, $k_{2,v}$; hence $k_{n,s}(x,y)$ is a vector $51\times1$.\\
 	For the last step, given the output of network, we call $K_n(x,y) = k_{n,h}(x,y) \cdot k_{n,v}(x,y)$, a matrix $51\times51$, and the input patch centred in $(x,y)$ of \textit{n-th} input frame $P_n(x,y)$, always a matrix $51\times51$.\\
@@ -80,29 +80,29 @@ Nicola Carlesso (1237782)}
 	\end{figure}
 
 	\section{Experiment}
-	In order to improve the performance of network we explored many solutions, some of which wasn't useful and other was more interesting.\\
-	Initially we maintain the original structure of the network, trying to change some parameters, but without significantly improvements. We tried:
+	In order to improve the performance of network we explored many solutions, some of which weren't useful and others were more interesting.\\
+	Initially we maintained the original structure of the network, trying to change some parameters, but without significantly improvements. We tried:
 	\begin{itemize}
-		\item \textbf{Normalization:} we applied the normalization to the input images, calculating mean and variance, and for the last step we applied the denormalization, in order to obtain a better learning. That has proven ineffective, as dataset were already nearly normalized by their own;
+		\item \textbf{Normalization:} we applied the normalization to the input images, calculating mean and variance, and for the last step we applied the denormalization, in order to obtain a better learning. That has proven ineffective, as dataset was already nearly normalized by its own;
 		\item \textbf{Dropout:} the goal was improve performances and speed of network, but we don't observe noticeable difference in accuracy or computing time. Dropout helps to generalize what network is learning. We assume that this encoding-decoding architecture can generalize well enough that it doesn't need to dropout; 
-		\item \textbf{Optimizer:} in CNN the mostly used optimization algorithm is Adam, so we use it for our experiments. We tested other optimization algorithms, like AdaMax or SDG, but without improvements.
+		\item \textbf{Optimizer:} in CNN the most used optimization algorithm is Adam, so we used it for our experiments. We tested other optimization algorithms, like AdaMax or SDG, but without improvements.
 	\end{itemize}
 	Maintaining Adam as optimizer, without normalization and dropout, we tried to modify the structure of network and the loss function, to compare the results in \cite{mainpaper} with our loss functions.\\
-	We applied two main changes to the network to getting an improvement:
+	We applied two main changes to the network to get an improvement:
 	\begin{itemize}
-		\item we remove from every coding and decoding step a convolutional layer, transforming it from 3-stack to 2-stack convolutional layers. In this way, the time per epoch reduces by about 30\% and the network trains faster without the risk of under fitting;
-		\item in the last step, when we apply the output network to the Equation~\ref{eq}, we add two additional convolution layers to see if kernels with a further convolutional operation can return better results. 
+		\item we removed from every coding and decoding step a convolutional layer, transforming it from 3-stack to 2-stack convolutional layers. In this way, the time per epoch reduces by about 30\%, the network trains faster without the risk of under fitting;
+		\item in the last step, when we apply the output network to the Equation~\ref{eq}, we added two additional convolution layers to see if the output image can be improved (e.g. sharpening it). 
 	\end{itemize}
-	Finally, we note that the network is able to overfit (if given enough epochs) even with large datasets, 15-20 epochs are enough to avoid it.
+	Finally, we note that the network is able to overfit (if given enough epochs) even with large datasets, with 15-20 epochs this is avoided.
 	
 	\subsection{Loss functions}
 	In \cite{mainpaper} the authors used two loss function: MSE and a perceptual loss, that is usually based on high-level features of images. They empirically found that the feature reconstruction loss based on the \texttt{relu4\_4}\footnote{\label{vgg-structure}To see the structure of VGG-19 with layer's name, visit \url{https://it.mathworks.com/help/deeplearning/ref/vgg19.html}} layer of the VGG-19 network produces good results for the frame interpolation task.\\
-	Following the idea of using feature maps to create a loss function, we decided to try some handcrafted filters, therefore we used four different loss functions:
+	Following the idea of using feature maps to create a loss function, we decided to try some other losses, therefore we used four different loss functions:
 	\begin{itemize}
 		\item \textbf{MSE}
 		\item \textbf{VGG19-44}: we used the pretrained VGG-19 weights until layer \texttt{relu4\_4}. We use this loss because it focuses on the overall (local) appearance of the image. VGG-19 extracts features, focusing more on discriminative information (for classification) than e.g. noise;
 		\item \textbf{VGG19-21}: we found that taking an earlier layer of the VGG-19 network, the \texttt{relu2\_1}\footref{vgg-structure}, gives a more interesting loss. At late layers the loss focuses on overall shapes, in this way our network matches harder the shape instead of its position on figures;
-		\item \textbf{SobelKernel}: we created a mini network with two convolutional layers with vertical and horizontal Sobel filters and then me compute MSE with the output.
+		\item \textbf{SobelKernel}: we created a mini network with two fixed convolutional layers with vertical and horizontal Sobel filters and then me compute MSE with the output. The idea is to focus more on maintaining the shape than on color information, to have less blurriness.
 	\end{itemize}
 
 	\subsection{Results}
@@ -115,9 +115,9 @@ Nicola Carlesso (1237782)}
 		\item \textbf{Kernel size}: 51 pixels;
 		\item \textbf{Optimizer}: Adam.
 	\end{itemize}
-	To compare network's results we compute the \textit{Loss} and \textit{Peak Signal to Noise Ratio} (PSNR) metric, that measures in dB the quality of a reconstructed image. These metrics are computed for training, validation and test sets, called respectively: \textit{TrLoss, TrPS, VaLoss, VaPS, TeLoss} and \textit{TePS}.\\
+	To compare network's results we computed the \textit{Loss} and \textit{Peak Signal to Noise Ratio} (PSNR) metric, that measures in dB the quality of a reconstructed image. These metrics are computed for training, validation and test sets, called respectively: \textit{TrLoss, TrPS, VaLoss, VaPS, TeLoss} and \textit{TePS}.\\
 	In Table~\ref{tab:old_results} we show performance of network described in the original paper \cite{mainpaper} and in Table~\ref{tab:results} we show the results of our network with modifies described above. In result's tables we report values only for the last epoch.\\
-	Unfortunately, our results refer to a single execution of the network, because on average an epoch takes about 3.5 hours (using a graphic card with 8GB of VRAM). 
+	Unfortunately, our results refer to a single execution of the network, because on average an epoch takes about 1000 seconds (using a graphic card with 8GB of VRAM). 
 
 	\begin{table}
 		\centering
@@ -158,10 +158,10 @@ Nicola Carlesso (1237782)}
 	In Figure~\ref{output}, Figure~\ref{performance1} and Figure~\ref{performance2} we show network's outputs and graph's performance with different loss functions. All images show on top the original frames triplet and under the network's output frame. For \textit{SobelKernel} we show also the feature map of a network's output image and a label image.
 	
 	\vspace{0.5cm}
-	Comparing the results in Table~\ref{tab:old_results} and Table~\ref{tab:results}, we observe that there isn't a significant difference between two architectures. Evidently, remove a convolutional layer from main structure or add convolutional layers at the end of training doesn't improve performances or the generality of learning network. The main difference is the speed of networks, because ours has about 17-18 millions of parameters, instead of other with about 20 millions of parameters.\\
-	Comparing different loss functions, VGG19-21 has a lower loss than VGG19-21, probably because first loss function use weights that refer to a more high-level feature of images. However, comparing only Tables can be misleading, because seeing Figure~\ref{output} we note that every loss function highlight different features if images.\\ We saw that MSE output in Figure~\ref{out:our-mse} is blurry and on the contrary in Figure~\ref{out:our-vgg1944} and in Figure~\ref{out:vgg1921}, with VGG19 loss, the output is more sharper, but the network tend to replicate one of input frames.\\
+	Comparing the results in Table~\ref{tab:old_results} and Table~\ref{tab:results}, we observe that there isn't a significant difference between two architectures. Evidently, removing a convolutional layer from main structure or adding convolutional layers at the end of training doesn't improve performances or the generality of learning. The main difference is the speed of networks, because ours has about 17-18 millions of parameters, instead of other with about 20 millions of parameters.\\
+	Comparing different loss functions, VGG19-21 has a lower loss than VGG19-21, probably because first loss function use weights that refer to a more high-level feature of images. However, comparing only Tables can be misleading, because seeing Figure~\ref{output} we note that every loss function highlight different features if images.\\ We saw that MSE output in Figure~\ref{out:our-mse} is blurry and on the contrary in Figure~\ref{out:our-vgg1944} and in Figure~\ref{out:vgg1921}, with VGG19 loss, the output is more sharper, but the network tends to replicate one of input frames.\\
 	As last test, we used Sobel filter because it's faster than VGG loss and because it focuses on edges, so output images would remain defined. Unfortunately, the output in Figure~\ref{out:sobel} shows that SobelKernel loss doesn't improve the sharpness.\\
-	We noted that with a smaller dataset, either using the SobelKernel loss or modifying the architecture with a single convolutional layer, we obtain significantly different results. Probably because with a large dataset, the network learns either more movements or shapes, hence it tents to insert them all in the output, creating a more blurred image.
+	We noted that with a smaller dataset, either using the SobelKernel loss or modifying the architecture with a single convolutional layer, we obtain significantly better results than with the standard net. Probably because with a large dataset, the network learns either more movements or shapes, hence it tents to insert them all in the output, creating a more blurred image.
 	
 	\begin{figure}
 		\centering
@@ -197,8 +197,8 @@ Nicola Carlesso (1237782)}
 	
 	
 	\subsection{Dvd Logo}
-	As mentioned above, testing our network with with VGG-19 filters, we saw that the interpolate frames tended to be identical to one of two input frames. To test if the network actually learns the movement of figures in an image, we tested the network with a video that show a single object that make a translation (the simplest movement), like this \href{https://www.youtube.com/watch?v=5mGuCdlCcNM}{Youtube video}.\\
-	As result, we see in Figure~\ref{dvd} that if in the whole dataset we introduce some of these examples, network can effectively learns the movements of figures in the video; probably a great help it gibes by a well defined background. 
+	As mentioned above, testing our network with with VGG-19 filters, we saw that the interpolated frames tended to be identical to one of two input frames. To test if the network actually learns the translation of figures in an image, we tested the network with a video that shows a single object that make a translation (the simplest movement), like this \href{https://www.youtube.com/watch?v=5mGuCdlCcNM}{Youtube video}.\\
+	As result, we see in Figure~\ref{dvd} that using a simple dataset, the network can actually learn the movements of figures in the video; probably a great help is given by a well defined background. 
 	
 	\begin{figure}
 		\centering
@@ -209,8 +209,8 @@ Nicola Carlesso (1237782)}
 	\end{figure} 
 	
 	\section{Conclusion}
-	Changing the network architecture we don't earn better performances, but trying different loss function we could observe feature that every type of network tends to highlight.\\ 
-	The video frame interpolation task can also helps for action recognition task in the pretrained phase, in the case of we want to see movements more detailed.
+	Changing the network architecture we don't earn better performance, but trying different loss functions we could observe that the combination of frames is done differently, mainly blurring them together, choosing a frame or an hybrid of the 2 things.\\ 
+	The video frame interpolation task can also help for action recognition task in the pretrain phase, in case we want to elaborate more detailed movements.
 	
 	\bibliographystyle{unsrt}
 	\bibliography{bibliography}

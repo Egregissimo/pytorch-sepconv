@@ -56,7 +56,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # parameters
 parser.add_argument('--example_dir', type=str, default='./dataset/video')
 parser.add_argument('--output', type=str, default='./output/video')
-parser.add_argument('--checkpoint', type=str, default='./output/checkpoint/model_epoch001.pth')
+parser.add_argument('--checkpoint', type=str, default='./output/checkpoint/101-150000_pretrained_8+6epoch.pth')
 parser.add_argument('--batch_size', type=int, default=8)
 parser.add_argument('--fps_output', type=int, default=5)
 

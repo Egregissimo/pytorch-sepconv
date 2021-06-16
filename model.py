@@ -27,8 +27,8 @@ class KernelEstimation(torch.nn.Module):
                 # con padding = 1 faccio in modo che in_channels == out_channels
                 torch.nn.Conv2d(in_channels=output_channel, out_channels=output_channel, kernel_size=3, stride=1, padding=1),
                 torch.nn.ReLU(inplace=False),
-                torch.nn.Conv2d(in_channels=output_channel, out_channels=output_channel, kernel_size=3, stride=1, padding=1),
-                torch.nn.ReLU(inplace=False),
+                #torch.nn.Conv2d(in_channels=output_channel, out_channels=output_channel, kernel_size=3, stride=1, padding=1),
+                #torch.nn.ReLU(inplace=False),
             )
 
         # Layer chiamato più volte che raddoppia la dimensione dell'input, effettuando una convoluzione e usando la ReLU
@@ -163,7 +163,7 @@ class SepConvNet(torch.nn.Module):
         self.epoch = torch.tensor(0, requires_grad=False)
         # rete per stimare i kernel
         self.get_kernel = KernelEstimation(self.kernel_size)
-        #self.imageTune = TuneNet()
+        self.imageTune = TuneNet()
         self.optimizer = optim.Adam(self.parameters(), lr=0.001)
         self.criterion = torch.nn.MSELoss()
 
@@ -211,8 +211,8 @@ class SepConvNet(torch.nn.Module):
         if w_padded:
             frame1 = frame1[:, :, :, :w0]
 
-        #return self.imageTune(frame1)
-        return frame1
+        return self.imageTune(frame1)
+        #return frame1
 
     def increase_epoch(self):
         self.epoch += 1
