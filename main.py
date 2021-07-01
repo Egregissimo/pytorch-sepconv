@@ -14,7 +14,7 @@ import cv2 as cv
 parser = argparse.ArgumentParser(description='SepConv Pytorch')
 
 # parameters
-parser.add_argument('--database', type=str, default='./dataset/101-50000')
+parser.add_argument('--database', type=str, default='./dataset/frames')
 parser.add_argument('--kernel', type=int, default=51)
 parser.add_argument('--out-dir', type=str, default='./output')
 parser.add_argument('--epochs', type=int, default=5)

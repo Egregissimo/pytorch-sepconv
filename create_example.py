@@ -56,7 +56,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # parameters
 parser.add_argument('--example_dir', type=str, default='./dataset/video')
 parser.add_argument('--output', type=str, default='./output/video')
-parser.add_argument('--checkpoint', type=str, default='./output/checkpoint/101-150000_pretrained_8+6epoch.pth')
+parser.add_argument('--checkpoint', type=str, default='./output/checkpoint/model_epoch001.pth')
 parser.add_argument('--batch_size', type=int, default=8)
 parser.add_argument('--fps_output', type=int, default=5)
 
@@ -87,7 +87,7 @@ def main():
     print("Loading Datatest...")
     # il video deve essere grande almeno quanto 'size' a 30 fps
     # n_output x size x size x 3
-    dataset_images = create_frames(cv2.VideoCapture(os.path.join(example_dir, 'example480.mp4')), input_dir)
+    dataset_images = create_frames(cv2.VideoCapture(os.path.join(example_dir, 'example.mp4')), input_dir)
     dataset = DBreader_frame_interpolation(input_dir)
     test_iterator = DataLoader(dataset=dataset, batch_size=batch_size)
 
@@ -120,6 +120,8 @@ def main():
         out.write(image)
 
     out.release()
+    rmtree(input_dir, ignore_errors = False)
+    rmtree(output_dir+'/ciao', ignore_errors=False)
 
 if __name__ == "__main__":
     main()
